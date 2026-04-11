@@ -8,30 +8,45 @@
   overflow: hidden;
 }
 
+.title-bg-image {
+  position: absolute;
+  inset: 0;
+  background: url('/title-bg.png') center top / cover no-repeat;
+  z-index: 0;
+}
+
 .title-bg-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(78, 205, 196, 0.05) 0%, transparent 70%);
+  background: linear-gradient(
+    to bottom,
+    transparent 30%,
+    rgba(10, 10, 15, 0.6) 60%,
+    rgba(10, 10, 15, 0.95) 85%,
+    #0a0a0f 100%
+  );
+  z-index: 1;
 }
 
 .title-content {
   position: relative;
   text-align: center;
-  z-index: 1;
+  z-index: 2;
   animation: fadeIn 1.5s ease;
+  margin-top: -8rem;
 }
 
 .title-main {
   font-size: 2.5rem;
-  color: #e0e0e0;
+  color: #f0e6d3;
   margin: 0;
   letter-spacing: 0.3rem;
-  text-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
+  text-shadow: 0 0 30px rgba(207, 142, 52, 0.4);
 }
 
 .title-sub {
   font-size: 1rem;
-  color: #666;
+  color: #8a7a65;
   margin: 0.5rem 0 3rem;
   letter-spacing: 0.5rem;
   text-transform: uppercase;
@@ -47,9 +62,9 @@
 .btn-start {
   padding: 0.9rem 3rem;
   font-size: 1.1rem;
-  background: transparent;
-  color: #4ecdc4;
-  border: 1px solid #4ecdc4;
+  background: rgba(207, 142, 52, 0.1);
+  color: #cf8e34;
+  border: 1px solid #cf8e34;
   border-radius: 4px;
   cursor: pointer;
   letter-spacing: 0.2rem;
@@ -57,7 +72,7 @@
 }
 
 .btn-start:hover {
-  background: #4ecdc4;
+  background: #cf8e34;
   color: #0a0a0f;
 }
 
@@ -65,8 +80,8 @@
   padding: 0.6rem 2rem;
   font-size: 0.85rem;
   background: transparent;
-  color: #666;
-  border: 1px solid #333;
+  color: #7a6b55;
+  border: 1px solid #3a3020;
   border-radius: 4px;
   cursor: pointer;
   letter-spacing: 0.1rem;
@@ -74,18 +89,8 @@
 }
 
 .btn-gallery:hover {
-  border-color: #666;
-  color: #aaa;
-}
-
-.title-credit {
-  position: absolute;
-  bottom: -6rem;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.7rem;
-  color: #333;
-  letter-spacing: 0.15rem;
+  border-color: #7a6b55;
+  color: #a89578;
 }
 
 @keyframes fadeIn {

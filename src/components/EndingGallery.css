@@ -35,7 +35,7 @@
 
 .gallery-count {
   font-size: 0.85rem;
-  color: #4ecdc4;
+  color: #cf8e34;
   margin: 0.3rem 0 0;
 }
 
@@ -54,7 +54,7 @@
 }
 
 .gallery-card.unlocked {
-  border-color: rgba(78, 205, 196, 0.2);
+  border-color: rgba(207, 142, 52, 0.2);
 }
 
 .gallery-card.locked {

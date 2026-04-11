@@ -26,7 +26,7 @@
 
 .act-label {
   font-size: 0.8rem;
-  color: #4ecdc4;
+  color: #cf8e34;
   letter-spacing: 0.2rem;
   text-transform: uppercase;
 }
@@ -63,7 +63,7 @@
 
 .speaker-name {
   font-size: 0.85rem;
-  color: #4ecdc4;
+  color: #cf8e34;
   margin-bottom: 0.5rem;
   letter-spacing: 0.1rem;
 }
@@ -79,7 +79,7 @@
 
 .cursor {
   animation: blink 0.8s infinite;
-  color: #4ecdc4;
+  color: #cf8e34;
 }
 
 @keyframes blink {
@@ -142,8 +142,8 @@
 }
 
 .choice-btn:hover:not(.disabled) {
-  background: rgba(78, 205, 196, 0.1);
-  border-color: #4ecdc4;
+  background: rgba(207, 142, 52, 0.1);
+  border-color: #cf8e34;
   color: #fff;
 }
 
@@ -175,5 +175,5 @@
   flex-shrink: 0;
 }
 
-.karma-hint.good { color: #4ecdc4; }
+.karma-hint.good { color: #6dab63; }
 .karma-hint.bad { color: #e74c3c; }

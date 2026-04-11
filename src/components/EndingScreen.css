@@ -72,8 +72,8 @@
 .btn-retry {
   padding: 0.7rem 2rem;
   background: transparent;
-  color: #4ecdc4;
-  border: 1px solid #4ecdc4;
+  color: #cf8e34;
+  border: 1px solid #cf8e34;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
@@ -81,7 +81,7 @@
 }
 
 .btn-retry:hover {
-  background: #4ecdc4;
+  background: #cf8e34;
   color: #0a0a0f;
 }
 

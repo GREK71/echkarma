@@ -8,6 +8,7 @@ export function TitleScreen() {
 
   return (
     <div className="title-screen">
+      <div className="title-bg-image" />
       <div className="title-bg-overlay" />
       <div className="title-content">
         <h1 className="title-main">업보의 메아리</h1>

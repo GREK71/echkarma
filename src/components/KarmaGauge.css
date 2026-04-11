@@ -17,7 +17,7 @@
   font-size: 1rem;
 }
 
-.karma-value.karma-low { color: #4ecdc4; }
+.karma-value.karma-low { color: #6dab63; }
 .karma-value.karma-mid { color: #f7dc6f; }
 .karma-value.karma-high { color: #e74c3c; }
 
@@ -35,7 +35,7 @@
   transition: width 0.5s ease, background 0.5s ease;
 }
 
-.karma-bar-fill.karma-low { background: linear-gradient(90deg, #4ecdc4, #44b8b0); }
+.karma-bar-fill.karma-low { background: linear-gradient(90deg, #6dab63, #5a9450); }
 .karma-bar-fill.karma-mid { background: linear-gradient(90deg, #f7dc6f, #f0c040); }
 .karma-bar-fill.karma-high { background: linear-gradient(90deg, #e74c3c, #c0392b); }
 
