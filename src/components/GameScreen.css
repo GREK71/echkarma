@@ -1,6 +1,6 @@
 .game-screen {
   height: 100dvh;
-  background: #0a0a0f;
+  background: #08080c;
   color: #d0d0d0;
   display: flex;
   flex-direction: column;
@@ -8,11 +8,27 @@
   max-width: 600px;
   margin: 0 auto;
   overflow: hidden;
+  position: relative;
 }
 
+/* === Screen shake for branch points === */
+.game-screen.screen-shake {
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  30% { transform: translateX(3px); }
+  45% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+}
+
+/* === Header === */
 .game-header {
   flex-shrink: 0;
-  border-bottom: 1px solid #1a1a2e;
+  border-bottom: 1px solid rgba(207, 142, 52, 0.15);
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
 }
@@ -25,17 +41,40 @@
 }
 
 .act-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #cf8e34;
-  letter-spacing: 0.2rem;
+  letter-spacing: 0.25rem;
   text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(207, 142, 52, 0.3);
 }
 
 .turn-label {
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 0.75rem;
+  color: #555;
+  letter-spacing: 0.1rem;
 }
 
+/* === Scene fade transitions === */
+.scene-fade {
+  transition: opacity 0.4s ease, transform 0.3s ease;
+}
+
+.scene-fade-in {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.scene-fade-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scene-fade-out {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+/* === Story area === */
 .story-area {
   flex: 1;
   display: flex;
@@ -48,38 +87,71 @@
   gap: 0.5rem;
 }
 
+/* === Branch indicator with pulse === */
 .branch-indicator {
-  display: inline-block;
-  padding: 0.2rem 0.8rem;
-  background: rgba(231, 76, 60, 0.15);
-  border: 1px solid rgba(231, 76, 60, 0.3);
-  color: #e74c3c;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.8rem;
+  background: rgba(180, 50, 30, 0.15);
+  border: 1px solid rgba(180, 50, 30, 0.4);
+  color: #c44030;
+  font-size: 0.7rem;
   border-radius: 2px;
-  letter-spacing: 0.15rem;
+  letter-spacing: 0.2rem;
   margin-bottom: 1rem;
   width: fit-content;
+  text-transform: uppercase;
+  animation: branchGlow 2s ease infinite;
 }
 
+.branch-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c44030;
+  animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px #c44030; }
+  50% { opacity: 0.4; box-shadow: 0 0 8px #c44030; }
+}
+
+@keyframes branchGlow {
+  0%, 100% { border-color: rgba(180, 50, 30, 0.4); }
+  50% { border-color: rgba(180, 50, 30, 0.7); }
+}
+
+/* === Speaker name === */
 .speaker-name {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #cf8e34;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.1rem;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.15rem;
+  text-shadow: 0 0 6px rgba(207, 142, 52, 0.25);
+  text-transform: uppercase;
 }
 
+.speaker-name::before {
+  content: '\u25b8 ';
+  font-size: 0.6rem;
+}
+
+/* === Narration text === */
 .narration-text {
-  font-size: 0.95rem;
-  line-height: 1.8;
-  color: #ccc;
+  font-size: 0.92rem;
+  line-height: 1.9;
+  color: #b0a898;
   margin: 0;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
 .cursor {
-  animation: blink 0.8s infinite;
+  animation: blink 0.7s infinite;
   color: #cf8e34;
+  text-shadow: 0 0 4px rgba(207, 142, 52, 0.5);
 }
 
 @keyframes blink {
@@ -87,6 +159,7 @@
   50% { opacity: 0; }
 }
 
+/* === Choices === */
 .choices-area {
   flex-shrink: 0;
   display: flex;
@@ -95,9 +168,9 @@
   padding: 0.75rem 0 1rem;
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
   pointer-events: none;
-  border-top: 1px solid #1a1a2e;
+  border-top: 1px solid rgba(207, 142, 52, 0.1);
 }
 
 .choices-area.visible {
@@ -110,18 +183,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.8rem 1rem;
-  background: rgba(26, 26, 46, 0.6);
-  color: #ccc;
-  border: 1px solid #2a2a3e;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  background: rgba(20, 18, 14, 0.8);
+  color: #b0a898;
+  border: 1px solid rgba(207, 142, 52, 0.12);
+  border-left: 3px solid transparent;
+  border-radius: 2px;
+  font-size: 0.88rem;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s;
-  line-height: 1.4;
+  transition: all 0.25s ease;
+  line-height: 1.5;
   word-break: keep-all;
   gap: 0.4rem;
+  animation: choiceSlideIn 0.4s ease both;
+}
+
+@keyframes choiceSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .choice-text {
@@ -137,36 +217,47 @@
 
 .cost-hints {
   font-size: 0.7rem;
-  color: #888;
+  color: #7a6b55;
   white-space: nowrap;
 }
 
 .choice-btn:hover:not(.disabled) {
-  background: rgba(207, 142, 52, 0.1);
-  border-color: #cf8e34;
-  color: #fff;
+  background: rgba(207, 142, 52, 0.08);
+  border-left-color: #cf8e34;
+  color: #f0e6d3;
+  box-shadow: 0 0 12px rgba(207, 142, 52, 0.08);
+}
+
+.choice-btn:active:not(.disabled) {
+  background: rgba(207, 142, 52, 0.15);
+  transform: scale(0.99);
 }
 
 .choice-btn.branch-choice {
-  border-color: rgba(231, 76, 60, 0.3);
+  border-color: rgba(180, 50, 30, 0.2);
+  background: rgba(180, 50, 30, 0.05);
 }
 
 .choice-btn.branch-choice:hover:not(.disabled) {
-  border-color: #e74c3c;
-  background: rgba(231, 76, 60, 0.1);
+  border-left-color: #c44030;
+  background: rgba(180, 50, 30, 0.1);
+  color: #f0e6d3;
+  box-shadow: 0 0 12px rgba(180, 50, 30, 0.1);
 }
 
 .choice-btn.disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
   border-style: dashed;
+  border-left-width: 1px;
 }
 
 .lock-reason {
-  font-size: 0.7rem;
-  color: #e74c3c;
+  font-size: 0.65rem;
+  color: #8a4a40;
   margin-left: 0.5rem;
   white-space: nowrap;
+  letter-spacing: 0.05rem;
 }
 
 .karma-hint {
@@ -176,4 +267,4 @@
 }
 
 .karma-hint.good { color: #6dab63; }
-.karma-hint.bad { color: #e74c3c; }
+.karma-hint.bad { color: #c44030; }

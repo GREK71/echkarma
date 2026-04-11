@@ -1,8 +1,9 @@
 .title-screen {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   min-height: 100dvh;
   background: #0a0a0f;
   overflow: hidden;
@@ -20,20 +21,21 @@
   inset: 0;
   background: linear-gradient(
     to bottom,
-    transparent 30%,
-    rgba(10, 10, 15, 0.6) 60%,
-    rgba(10, 10, 15, 0.95) 85%,
-    #0a0a0f 100%
+    rgba(10, 10, 15, 0.3) 0%,
+    transparent 20%,
+    transparent 50%,
+    rgba(10, 10, 15, 0.7) 70%,
+    #0a0a0f 92%
   );
   z-index: 1;
 }
 
-.title-content {
+.title-heading {
   position: relative;
-  text-align: center;
   z-index: 2;
+  text-align: center;
+  margin-top: 15vh;
   animation: fadeIn 1.5s ease;
-  margin-top: -8rem;
 }
 
 .title-main {
@@ -41,22 +43,26 @@
   color: #f0e6d3;
   margin: 0;
   letter-spacing: 0.3rem;
-  text-shadow: 0 0 30px rgba(207, 142, 52, 0.4);
+  text-shadow: 0 0 30px rgba(207, 142, 52, 0.4), 0 2px 8px rgba(0,0,0,0.8);
 }
 
 .title-sub {
   font-size: 1rem;
   color: #8a7a65;
-  margin: 0.5rem 0 3rem;
+  margin: 0.5rem 0 0;
   letter-spacing: 0.5rem;
   text-transform: uppercase;
 }
 
 .title-buttons {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   align-items: center;
+  margin-bottom: 4rem;
+  animation: fadeIn 2s ease;
 }
 
 .btn-start {
