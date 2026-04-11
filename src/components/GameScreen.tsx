@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { scenes } from '../data/scenes';
 import { RESOURCE_CONFIG } from '../game/resources';
@@ -8,42 +8,59 @@ import { ResourceBar } from './ResourceBar';
 import './GameScreen.css';
 
 export function GameScreen() {
-  const { currentSceneId, karma, resources, npcs, makeChoice, clearResourceEvent } = useGameStore();
+  const {
+    currentSceneId, karma, resources, npcs,
+    makeChoice, makeRandomEventChoice, clearResourceEvent,
+    responseText, dismissResponse, activeRandomEvent,
+  } = useGameStore();
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
   const [showChoices, setShowChoices] = useState(false);
   const [fadeState, setFadeState] = useState<'in' | 'visible' | 'out'>('in');
   const [screenShake, setScreenShake] = useState(false);
-  const prevSceneId = useRef(currentSceneId);
 
   const scene = scenes.find((s) => s.id === currentSceneId);
 
-  // Scene transition fade
-  useEffect(() => {
-    if (!scene) return;
+  // Determine what to display: response text, random event, or scene
+  const isShowingResponse = responseText !== null && activeRandomEvent === null;
+  const isShowingRandomEvent = activeRandomEvent !== null && responseText === null;
+  const isShowingScene = !isShowingResponse && !isShowingRandomEvent;
 
-    // Fade in on scene change
+  const displayNarration = isShowingResponse
+    ? responseText
+    : isShowingRandomEvent
+    ? activeRandomEvent!.narration
+    : scene?.narration ?? '';
+
+  const displaySpeaker = isShowingRandomEvent
+    ? activeRandomEvent!.speaker
+    : isShowingScene
+    ? scene?.speaker
+    : undefined;
+
+  // Scene/content change effect
+  useEffect(() => {
     setFadeState('in');
     setDisplayedText('');
     setIsTyping(true);
     setShowChoices(false);
-    clearResourceEvent();
 
-    const fadeTimer = setTimeout(() => {
-      setFadeState('visible');
-    }, 400);
+    if (isShowingScene) {
+      clearResourceEvent();
+    }
 
-    // Branch point screen shake
-    if (scene.isBranch) {
+    const fadeTimer = setTimeout(() => setFadeState('visible'), 400);
+
+    if (isShowingScene && scene?.isBranch) {
       setScreenShake(true);
       setTimeout(() => setScreenShake(false), 600);
     }
 
-    // Typing effect starts after fade
     let i = 0;
-    const text = scene.narration;
+    const text = displayNarration;
+    let interval: ReturnType<typeof setInterval>;
     const typingDelay = setTimeout(() => {
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         i++;
         setDisplayedText(text.slice(0, i));
         if (i >= text.length) {
@@ -52,23 +69,27 @@ export function GameScreen() {
           setTimeout(() => setShowChoices(true), 400);
         }
       }, 25);
-      return () => clearInterval(interval);
     }, 500);
-
-    prevSceneId.current = currentSceneId;
 
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(typingDelay);
+      if (interval) clearInterval(interval);
     };
-  }, [currentSceneId]);
+  }, [currentSceneId, responseText, activeRandomEvent?.id]);
 
   const handleSkip = () => {
-    if (isTyping && scene) {
-      setDisplayedText(scene.narration);
+    if (isTyping) {
+      setDisplayedText(displayNarration);
       setIsTyping(false);
       setTimeout(() => setShowChoices(true), 100);
     }
+  };
+
+  const handleResponseDismiss = () => {
+    setFadeState('out');
+    setShowChoices(false);
+    setTimeout(() => dismissResponse(), 350);
   };
 
   const handleChoice = (choiceIndex: number) => {
@@ -80,23 +101,28 @@ export function GameScreen() {
       if (choice.branchResult === 'c_dialogue' && karma > 8) return;
     }
     if (scene.id === 'branch_b' && choice.branchResult === 'b_luka_negotiate' && !npcs.luka.revealed) return;
-
     if (choice.requireResource) {
       const { resource, min } = choice.requireResource;
       if (resources[resource] < min) return;
     }
 
-    // Fade out before transitioning
     setFadeState('out');
     setShowChoices(false);
-    setTimeout(() => {
-      makeChoice(choice);
-    }, 350);
+    setTimeout(() => makeChoice(choice), 350);
+  };
+
+  const handleRandomEventChoice = (choiceIndex: number) => {
+    if (!activeRandomEvent) return;
+    const choice = activeRandomEvent.choices[choiceIndex];
+    setFadeState('out');
+    setShowChoices(false);
+    setTimeout(() => makeRandomEventChoice(choice), 350);
   };
 
   if (!scene) return <div className="game-screen">씬을 불러올 수 없습니다.</div>;
 
   const actLabel = scene.act === 1 ? '제1막' : scene.act === 2 ? '제2막' : '제3막';
+  const isBranchScene = isShowingScene && scene.isBranch;
 
   return (
     <div className={`game-screen ${screenShake ? 'screen-shake' : ''}`}>
@@ -111,14 +137,17 @@ export function GameScreen() {
       </div>
 
       <div className={`story-area scene-fade scene-fade-${fadeState}`} onClick={handleSkip}>
-        {scene.isBranch && (
+        {isBranchScene && (
           <div className="branch-indicator">
             <span className="branch-pulse" />
             분기점
           </div>
         )}
-        {scene.speaker && (
-          <div className="speaker-name">{scene.speaker}</div>
+        {isShowingRandomEvent && (
+          <div className="random-event-indicator">돌발 상황</div>
+        )}
+        {displaySpeaker && (
+          <div className="speaker-name">{displaySpeaker}</div>
         )}
         <p className="narration-text">
           {displayedText}
@@ -127,31 +156,58 @@ export function GameScreen() {
       </div>
 
       <div className={`choices-area ${showChoices ? 'visible' : ''}`}>
-        {scene.choices.map((choice, idx) => {
+        {/* Response text dismiss */}
+        {isShowingResponse && (
+          <button className="choice-btn" onClick={handleResponseDismiss}>
+            <span className="choice-text">계속...</span>
+          </button>
+        )}
+
+        {/* Random event choices */}
+        {isShowingRandomEvent && activeRandomEvent!.choices.map((choice, idx) => {
+          const costHints: string[] = [];
+          if (choice.resourceCost) {
+            for (const [key, val] of Object.entries(choice.resourceCost)) {
+              if (val === 0) continue;
+              const cfg = RESOURCE_CONFIG[key as keyof typeof RESOURCE_CONFIG];
+              costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
+            }
+          }
+          return (
+            <button
+              key={idx}
+              className="choice-btn random-event-choice"
+              onClick={() => handleRandomEventChoice(idx)}
+              style={{ animationDelay: `${idx * 0.1}s` }}
+            >
+              <span className="choice-text">{choice.text}</span>
+              <span className="choice-hints">
+                {costHints.length > 0 && <span className="cost-hints">{costHints.join(' ')}</span>}
+                {choice.karmaChange !== 0 && (
+                  <span className={`karma-hint ${choice.karmaChange > 0 ? 'bad' : 'good'}`}>
+                    {choice.karmaChange > 0 ? `+${choice.karmaChange}` : choice.karmaChange}
+                  </span>
+                )}
+              </span>
+            </button>
+          );
+        })}
+
+        {/* Normal scene choices */}
+        {isShowingScene && scene.choices.map((choice, idx) => {
           let disabled = false;
           let lockReason = '';
 
           if (scene.id === 'branch_c') {
-            if (choice.branchResult === 'c_spare' && karma > 4) {
-              disabled = true;
-              lockReason = '업보 \u22644 필요';
-            }
-            if (choice.branchResult === 'c_dialogue' && karma > 8) {
-              disabled = true;
-              lockReason = '업보 \u22648 필요';
-            }
+            if (choice.branchResult === 'c_spare' && karma > 4) { disabled = true; lockReason = '업보 \u22644 필요'; }
+            if (choice.branchResult === 'c_dialogue' && karma > 8) { disabled = true; lockReason = '업보 \u22648 필요'; }
           }
           if (scene.id === 'branch_b' && choice.branchResult === 'b_luka_negotiate' && !npcs.luka.revealed) {
-            disabled = true;
-            lockReason = '루카를 만나지 못했다';
+            disabled = true; lockReason = '루카를 만나지 못했다';
           }
-
           if (choice.requireResource) {
             const { resource, min } = choice.requireResource;
-            if (resources[resource] < min) {
-              disabled = true;
-              lockReason = `${RESOURCE_CONFIG[resource].label} ${min} 이상 필요`;
-            }
+            if (resources[resource] < min) { disabled = true; lockReason = `${RESOURCE_CONFIG[resource].label} ${min} 이상 필요`; }
           }
 
           const costHints: string[] = [];
@@ -166,7 +222,7 @@ export function GameScreen() {
           return (
             <button
               key={idx}
-              className={`choice-btn ${disabled ? 'disabled' : ''} ${scene.isBranch ? 'branch-choice' : ''}`}
+              className={`choice-btn ${disabled ? 'disabled' : ''} ${isBranchScene ? 'branch-choice' : ''}`}
               onClick={() => handleChoice(idx)}
               disabled={disabled}
               style={{ animationDelay: `${idx * 0.1}s` }}
@@ -174,9 +230,7 @@ export function GameScreen() {
               <span className="choice-text">{choice.text}</span>
               <span className="choice-hints">
                 {lockReason && <span className="lock-reason">{lockReason}</span>}
-                {!disabled && costHints.length > 0 && (
-                  <span className="cost-hints">{costHints.join(' ')}</span>
-                )}
+                {!disabled && costHints.length > 0 && <span className="cost-hints">{costHints.join(' ')}</span>}
                 {!disabled && choice.karmaChange !== 0 && (
                   <span className={`karma-hint ${choice.karmaChange > 0 ? 'bad' : 'good'}`}>
                     {choice.karmaChange > 0 ? `+${choice.karmaChange}` : choice.karmaChange}

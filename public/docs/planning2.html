@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업보의 메아리 - 개발 기획서 v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; color: #b0a898; font-family: 'Noto Sans KR', sans-serif; line-height: 1.8; padding: 2rem; max-width: 800px; margin: 0 auto; }
+  h1 { color: #f0e6d3; font-size: 1.8rem; margin-bottom: 0.5rem; text-shadow: 0 0 15px rgba(207,142,52,0.3); }
+  h2 { color: #cf8e34; font-size: 1.3rem; margin: 2rem 0 0.8rem; border-bottom: 1px solid rgba(207,142,52,0.2); padding-bottom: 0.3rem; }
+  h3 { color: #d4a854; font-size: 1.05rem; margin: 1.5rem 0 0.5rem; }
+  p, li { margin-bottom: 0.5rem; font-size: 0.92rem; }
+  ul { padding-left: 1.5rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+  th { background: rgba(207,142,52,0.15); color: #cf8e34; text-align: left; padding: 0.5rem; border: 1px solid #2a2015; }
+  td { padding: 0.5rem; border: 1px solid #1a1510; }
+  code { background: #1a1510; padding: 0.15rem 0.4rem; border-radius: 2px; color: #cf8e34; font-size: 0.85rem; }
+  .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 2px; font-size: 0.75rem; margin-right: 0.3rem; }
+  .badge-new { background: rgba(109,171,99,0.2); color: #6dab63; border: 1px solid rgba(109,171,99,0.3); }
+  .badge-changed { background: rgba(207,142,52,0.15); color: #cf8e34; border: 1px solid rgba(207,142,52,0.3); }
+  .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+</style>
+</head>
+<body>
+
+<h1>업보의 메아리 (Echo of Karma)</h1>
+<p class="subtitle">개발 기획서 v2.0 &mdash; 2026.04.11 업데이트</p>
+
+<h2>1. 게임 개요</h2>
+<p>포스트 아포칼립스 세계에서 기억을 잃은 주인공이 정착지에서 살아남으며 과거와 마주하는 내러티브 RPG. 선택에 따라 자원이 변하고, 랜덤 이벤트가 발생하며, 6가지 엔딩으로 분기된다.</p>
+<ul>
+  <li><strong>플랫폼:</strong> 웹앱 (모바일 퍼스트) + APK (Capacitor)</li>
+  <li><strong>1회 플레이 시간:</strong> 10~15분</li>
+  <li><strong>리플레이:</strong> 랜덤 이벤트 + 분기 선택지 + 6개 엔딩 수집</li>
+  <li><strong>기술 스택:</strong> React 18 + TypeScript + Vite + Zustand</li>
+</ul>
+
+<h2>2. 핵심 시스템</h2>
+
+<h3>2-1. 자원 관리 <span class="badge badge-new">NEW</span></h3>
+<table>
+  <tr><th>자원</th><th>아이콘</th><th>초기값</th><th>범위</th><th>역할</th></tr>
+  <tr><td>체력(HP)</td><td>&#10084;</td><td>5</td><td>0~8</td><td>전투/위험 선택의 대가. 0이면 게임오버</td></tr>
+  <tr><td>식량</td><td>&#127838;</td><td>5</td><td>0~8</td><td>3턴마다 1 소모. 0이면 매 턴 HP -1</td></tr>
+  <tr><td>신뢰도</td><td>&#129309;</td><td>3</td><td>0~6</td><td>NPC 관계. 특정 선택지 잠금 해제</td></tr>
+</table>
+<ul>
+  <li>선택지마다 자원 비용이 표시됨</li>
+  <li>식량 0 이후: <strong>매 턴 HP -1</strong> (굶주림)</li>
+  <li>신뢰도 부족 시 일부 선택지 잠금 (루카 협상, 칸 대화 등)</li>
+  <li>HP 0 = "쓰러진 자" 게임오버 엔딩</li>
+</ul>
+
+<h3>2-2. 카르마 시스템</h3>
+<ul>
+  <li>범위: 0~12 (초기값 5)</li>
+  <li>선택지에 따라 증감, 실시간 게이지 표시</li>
+  <li>엔딩 조건의 핵심 변수</li>
+  <li>카르마 &le;4: 속죄 엔딩 가능 / 카르마 &ge;9: 폐허의 왕 엔딩</li>
+</ul>
+
+<h3>2-3. NPC 생존 추적</h3>
+<table>
+  <tr><th>NPC</th><th>역할</th><th>생존 조건</th></tr>
+  <tr><td>정 노인</td><td>정착지 지도자</td><td>분기점 B에서 결정</td></tr>
+  <tr><td>이설</td><td>플레이어의 도덕적 거울</td><td>카르마 &le;6 또는 특정 대화</td></tr>
+  <tr><td>민준</td><td>어린 아이, 죄책감 상징</td><td>분기점 A에서 결정</td></tr>
+  <tr><td>루카</td><td>숨겨진 동맹</td><td>턴 9에서 발견 시 등장</td></tr>
+</table>
+
+<h2>3. 스토리 구조</h2>
+
+<h3>3-1. 3막 20턴 구조</h3>
+<table>
+  <tr><th>막</th><th>턴</th><th>핵심 이벤트</th></tr>
+  <tr><td>1막: 도입</td><td>1~7</td><td>세계 인식, 분기점 A (민준의 선택)</td></tr>
+  <tr><td>2막: 갈등</td><td>8~14</td><td>갈등 심화, 루카 발견, 분기점 B (장로의 결단)</td></tr>
+  <tr><td>3막: 클라이맥스</td><td>15~20</td><td>최종 대결, 분기점 C (칸과의 대면)</td></tr>
+</table>
+
+<h3>3-2. 선택지 반응 시스템 <span class="badge badge-new">NEW</span></h3>
+<ul>
+  <li>선택 직후 <code>responseText</code>로 즉각적인 결과 피드백</li>
+  <li>예: "경계하며 일어선다" &rarr; "주먹을 쥐고 몸을 일으킨다. 다가오던 그림자가 잠시 멈칫한다."</li>
+  <li>이전 선택에 따라 다음 씬의 대사가 분기됨</li>
+  <li>예: 턴 1에서 경계 &rarr; 턴 2 이설이 "경계심이 강하시군요..." / 관찰 &rarr; "이틀이나 의식이 없었거든요"</li>
+</ul>
+
+<h3>3-3. 랜덤 이벤트 시스템 <span class="badge badge-new">NEW</span></h3>
+<p>턴 3~18 사이에 35% 확률로 랜덤 이벤트 발생. 같은 플레이에서도 다른 경험을 제공.</p>
+<table>
+  <tr><th>이벤트</th><th>설명</th><th>막</th><th>최대 횟수</th></tr>
+  <tr><td>괴한 출몰</td><td>밤중 침입자 — 경보/추적/무시</td><td>1,2,3</td><td>2</td></tr>
+  <tr><td>식량 도난</td><td>식량 저장소 털림 — 색출/분배/경비</td><td>1,2</td><td>1</td></tr>
+  <tr><td>부상자 발견</td><td>낯선 부상자 — 치료/방치/최소한 도움</td><td>1,2,3</td><td>2</td></tr>
+  <tr><td>폐허 보급품</td><td>물자 발견 — 식량/의약품/전부</td><td>1,2</td><td>1</td></tr>
+  <tr><td>정착지 내분</td><td>주민 다툼 — 중재/무시/강제 질서</td><td>2,3</td><td>1</td></tr>
+  <tr><td>이상한 소리</td><td>밤의 신호 — 추적/이설에게 알림/무시</td><td>1,2</td><td>1</td></tr>
+  <tr><td>약탈자 정찰병</td><td>조우 — 공격/은신/대화</td><td>2,3</td><td>2</td></tr>
+  <tr><td>모래폭풍</td><td>자연재해 — 바리케이드 사수/대피</td><td>2,3</td><td>1</td></tr>
+</table>
+
+<h2>4. 엔딩 시스템</h2>
+<table>
+  <tr><th>엔딩</th><th>조건</th><th>별점</th></tr>
+  <tr><td>쓰러진 자 <span class="badge badge-new">NEW</span></td><td>HP 0 (게임오버)</td><td>&#9734;&#9734;&#9734;&#9734;&#9734; (0)</td></tr>
+  <tr><td>폐허의 왕</td><td>카르마 &ge;9, 칸 살해 성공</td><td>&#9733;&#9734;&#9734;&#9734;&#9734; (1)</td></tr>
+  <tr><td>메아리의 끝</td><td>카르마 &ge;9, 살해 실패/항복</td><td>&#9733;&#9733;&#9734;&#9734;&#9734; (2)</td></tr>
+  <tr><td>생존자</td><td>카르마 4~8</td><td>&#9733;&#9733;&#9733;&#9734;&#9734; (3)</td></tr>
+  <tr><td>화해</td><td>카르마 &le;8, 칸과 대화 성공</td><td>&#9733;&#9733;&#9733;&#9733;&#9734; (4)</td></tr>
+  <tr><td>속죄</td><td>카르마 &le;4, 이설 생존, 칸 놓아줌</td><td>&#9733;&#9733;&#9733;&#9733;&#9733; (5)</td></tr>
+</table>
+
+<h2>5. UI/UX 디자인</h2>
+<h3>5-1. 비주얼 컨셉 <span class="badge badge-changed">CHANGED</span></h3>
+<ul>
+  <li>전체 톤: 검은방 스타일 어두운 미스터리 분위기</li>
+  <li>컬러 팔레트: 앰버/오렌지 (#cf8e34) 아포칼립스 톤</li>
+  <li>배경: #08080c 초어두운 배경</li>
+  <li>텍스트: #b0a898 따뜻한 톤</li>
+</ul>
+
+<h3>5-2. 연출 효과 <span class="badge badge-new">NEW</span></h3>
+<ul>
+  <li>씬 전환: 페이드 인/아웃 (0.4초)</li>
+  <li>선택지 호버: 왼쪽 앰버 라인 + 글로우</li>
+  <li>분기점: 화면 흔들림 (shake) + 펄스 인디케이터</li>
+  <li>텍스트 타이핑: 25ms/글자, 탭하여 스킵</li>
+  <li>선택 결과: responseText 표시 후 "계속..." 버튼</li>
+  <li>랜덤 이벤트: "돌발 상황" 앰버 인디케이터</li>
+</ul>
+
+<h3>5-3. 타이틀 화면</h3>
+<ul>
+  <li>배경: 포스트 아포칼립스 일러스트 (NPC 실루엣)</li>
+  <li>제목 상단, 버튼 하단 배치</li>
+  <li>엔딩 갤러리 (0/6) 수집 현황</li>
+</ul>
+
+<h2>6. 배포</h2>
+<ul>
+  <li><strong>웹:</strong> GitHub Pages (https://grek71.github.io/echkarma/)</li>
+  <li><strong>APK:</strong> Capacitor (예정)</li>
+  <li><strong>CI/CD:</strong> GitHub Actions 자동 빌드 & 배포</li>
+</ul>
+
+</body>
+</html>

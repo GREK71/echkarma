@@ -10,6 +10,14 @@ export interface Choice {
   branchResult?: string;
   resourceCost?: Partial<Record<ResourceKey, number>>;
   requireResource?: { resource: ResourceKey; min: number };
+  responseText?: string;
+}
+
+export interface SceneConditionState {
+  karma: number;
+  npcs: Record<string, { alive: boolean; revealed: boolean }>;
+  branchResults: Record<string, string>;
+  resources: { hp: number; food: number; trust: number };
 }
 
 export interface Scene {
@@ -20,7 +28,7 @@ export interface Scene {
   speaker?: string;
   choices: Choice[];
   isBranch?: boolean;
-  condition?: (state: { karma: number; npcs: Record<string, { alive: boolean; revealed: boolean }> }) => boolean;
+  condition?: (state: SceneConditionState) => boolean;
 }
 
 export const scenes: Scene[] = [
@@ -31,20 +39,34 @@ export const scenes: Scene[] = [
     turn: 1,
     narration: '먼지 뒤덮인 폐허 위로 희미한 햇살이 비친다. 당신은 기억을 잃은 채 작은 정착지 근처에서 눈을 뜬다. 멀리서 누군가 다가온다.',
     choices: [
-      { text: '경계하며 일어선다', karmaChange: 0 },
-      { text: '조용히 누워서 상황을 살핀다', karmaChange: 0 },
+      { text: '경계하며 일어선다', karmaChange: 0, branchResult: 'turn1_alert', responseText: '주먹을 쥐고 몸을 일으킨다. 다가오던 그림자가 잠시 멈칫한다.' },
+      { text: '조용히 누워서 상황을 살핀다', karmaChange: 0, branchResult: 'turn1_observe', responseText: '눈을 가늘게 뜨고 숨을 고른다. 발소리가 가까워진다... 여자의 목소리가 들린다.' },
     ],
   },
   {
-    id: 'act1_turn2',
+    id: 'act1_turn2_alert',
     act: 1,
     turn: 2,
-    narration: '다가온 여인이 말한다. "정신이 들었군요. 여긴 우리 정착지 외곽이에요. 저는 이설이라고 합니다." 그녀의 눈에는 경계와 연민이 섞여 있다.',
+    narration: '여인이 양손을 들어 보이며 천천히 다가온다. "적이 아니에요. 경계심이 강하시군요... 여긴 우리 정착지 외곽이에요. 저는 이설이라고 합니다." 그녀는 당신의 눈빛을 살피며 조심스럽게 말한다.',
     speaker: '이설',
+    condition: (state) => state.branchResults['act1_turn1'] === 'turn1_alert',
     choices: [
-      { text: '"도와줘서 고맙다."', karmaChange: -1, resourceCost: { trust: 1 } },
-      { text: '"여기가 어디지? 내가 왜 여기 있는 거야?"', karmaChange: 0 },
-      { text: '"......"(묵묵히 따라간다)', karmaChange: 0, resourceCost: { trust: -1 } },
+      { text: '"...미안하다. 반사적으로."', karmaChange: -1, resourceCost: { trust: 1 }, responseText: '이설이 작게 웃는다. "살아남으려면 그 정도는 당연하죠."' },
+      { text: '"무기는 없나? 여기 안전한 건가?"', karmaChange: 0, resourceCost: { hp: 1 }, responseText: '이설이 고개를 끄덕인다. "일단 안전해요. 따라오세요."' },
+      { text: '"가까이 오지 마." (경계를 유지한다)', karmaChange: 1, resourceCost: { trust: -1 }, responseText: '이설이 한 발 물러선다. 그녀의 표정에 실망이 스친다.' },
+    ],
+  },
+  {
+    id: 'act1_turn2_observe',
+    act: 1,
+    turn: 2,
+    narration: '여인이 당신 옆에 무릎을 꿇는다. "깨어났군요. 걱정했어요... 이틀이나 의식이 없었거든요." 그녀가 물을 건넨다. "저는 이설이에요. 여긴 우리 정착지 외곽이에요."',
+    speaker: '이설',
+    condition: (state) => state.branchResults['act1_turn1'] !== 'turn1_alert',
+    choices: [
+      { text: '물을 받아 마신다. "고맙다."', karmaChange: -1, resourceCost: { hp: 1, trust: 1 }, responseText: '목을 적시자 시야가 또렷해진다. 이설이 안도의 한숨을 쉰다.' },
+      { text: '"이틀... 여기서 무슨 일이 있었지?"', karmaChange: 0, responseText: '이설의 표정이 어두워진다. "그건... 안에서 이야기해요."' },
+      { text: '"......"(묵묵히 따라간다)', karmaChange: 0, resourceCost: { trust: -1 }, responseText: '당신은 아무 말 없이 일어선다. 이설이 불안한 눈으로 앞장선다.' },
     ],
   },
   {
@@ -54,9 +76,9 @@ export const scenes: Scene[] = [
     narration: '정착지에 들어서자 백발의 노인이 맞이한다. "또 한 명의 길 잃은 영혼이로군." 정 노인은 지팡이를 짚고 당신을 살핀다. "여기서 지내려면 규칙을 따라야 한다. 약탈하지 말 것, 나누어 먹을 것."',
     speaker: '정 노인',
     choices: [
-      { text: '"규칙을 따르겠습니다."', karmaChange: -1, resourceCost: { trust: 1 } },
-      { text: '"내가 왜 남의 규칙을 따라야 하지?"', karmaChange: 1, resourceCost: { trust: -1 } },
-      { text: '"먹을 것부터 주시오."', karmaChange: 1, resourceCost: { food: 1, trust: -1 } },
+      { text: '"규칙을 따르겠습니다."', karmaChange: -1, resourceCost: { trust: 1 }, responseText: '정 노인이 고개를 끄덕인다. "좋아. 잘 지낼 수 있을 게다."' },
+      { text: '"내가 왜 남의 규칙을 따라야 하지?"', karmaChange: 1, resourceCost: { trust: -1 }, responseText: '노인의 눈이 좁아진다. "이곳에서 혼자 살아남을 수 있다고 생각하나?"' },
+      { text: '"먹을 것부터 주시오."', karmaChange: 1, resourceCost: { food: 1, trust: -1 }, responseText: '노인이 한숨을 쉬며 마른 빵을 건넨다. 주변 사람들의 시선이 차갑다.' },
     ],
   },
   {
@@ -66,9 +88,9 @@ export const scenes: Scene[] = [
     narration: '정착지의 하루가 시작된다. 물 길어오기, 바리케이드 보수, 식량 배분. 작은 아이 민준이 당신에게 다가온다. "형... 아니, 아저씨? 같이 물 길으러 가요!"',
     speaker: '민준',
     choices: [
-      { text: '민준과 함께 물을 길으러 간다', karmaChange: -1, resourceCost: { food: 1, trust: 1 } },
-      { text: '"바쁘다. 다른 사람한테 부탁해."', karmaChange: 1, resourceCost: { trust: -1 } },
-      { text: '바리케이드 보수를 돕는다', karmaChange: 0, resourceCost: { hp: -1 } },
+      { text: '민준과 함께 물을 길으러 간다', karmaChange: -1, resourceCost: { food: 1, trust: 1 }, responseText: '민준이 환하게 웃는다. 돌아오는 길에 먹을 수 있는 열매를 발견했다.' },
+      { text: '"바쁘다. 다른 사람한테 부탁해."', karmaChange: 1, resourceCost: { trust: -1 }, responseText: '민준의 어깨가 축 처진다. 뒤에서 이설이 안쓰러운 눈으로 바라본다.' },
+      { text: '바리케이드 보수를 돕는다', karmaChange: 0, resourceCost: { hp: -1 }, responseText: '무거운 잔해를 옮기다 손에 상처가 났다. 하지만 방벽은 한층 튼튼해졌다.' },
     ],
   },
   {
@@ -78,9 +100,9 @@ export const scenes: Scene[] = [
     narration: '밤이 되었다. 멀리서 불빛이 보인다. 약탈자들의 캠프다. 이설이 다가와 속삭인다. "저들이 점점 가까이 오고 있어요. 정 노인은 대화로 해결하려 하지만... 저는 걱정돼요."',
     speaker: '이설',
     choices: [
-      { text: '"대화가 통할 리 없어. 준비해야 해."', karmaChange: 1, resourceCost: { trust: -1 } },
-      { text: '"정 노인의 판단을 믿어보자."', karmaChange: -1, resourceCost: { trust: 1 } },
-      { text: '"혼자 정찰을 나가보겠다."', karmaChange: 0, resourceCost: { hp: -1 } },
+      { text: '"대화가 통할 리 없어. 준비해야 해."', karmaChange: 1, resourceCost: { trust: -1 }, responseText: '이설이 입술을 깨문다. "...그럴지도 모르죠." 그녀의 눈에 불안이 깊어진다.' },
+      { text: '"정 노인의 판단을 믿어보자."', karmaChange: -1, resourceCost: { trust: 1 }, responseText: '이설이 고개를 끄덕이지만, 완전히 안심한 표정은 아니다.' },
+      { text: '"혼자 정찰을 나가보겠다."', karmaChange: 0, resourceCost: { hp: -1 }, responseText: '어둠 속을 헤맸다. 약탈자 캠프의 위치를 대략 파악했지만, 돌아오는 길에 다리를 다쳤다.' },
     ],
   },
   {
@@ -89,10 +111,10 @@ export const scenes: Scene[] = [
     turn: 6,
     narration: '다음 날 아침, 정착지 외곽에서 약탈자 한 명이 발견된다. 부상을 입고 쓰러져 있다. 사람들이 웅성거린다. "저자를 어떻게 할 것인가?"',
     choices: [
-      { text: '치료해준다', karmaChange: -2, resourceCost: { food: -1, trust: 1 } },
-      { text: '묶어서 심문한다', karmaChange: 1, resourceCost: { trust: -1 } },
-      { text: '정착지 밖으로 내쫓는다', karmaChange: 0 },
-      { text: '위협을 제거한다', karmaChange: 2, resourceCost: { trust: -2 } },
+      { text: '치료해준다', karmaChange: -2, resourceCost: { food: -1, trust: 1 }, responseText: '약탈자가 의식을 되찾았다. "왜... 왜 살려준 거야?" 그의 눈에 혼란이 서린다.' },
+      { text: '묶어서 심문한다', karmaChange: 1, resourceCost: { trust: -1 }, responseText: '"정보를 내놓으면 살려주겠다." 약탈자가 겁에 질린 눈으로 고개를 끄덕인다.' },
+      { text: '정착지 밖으로 내쫓는다', karmaChange: 0, responseText: '약탈자가 절뚝이며 사라진다. 그가 돌아가 동료에게 뭐라고 전할지... 알 수 없다.' },
+      { text: '위협을 제거한다', karmaChange: 2, resourceCost: { trust: -2 }, responseText: '일은 끝났다. 하지만 사람들의 시선이 예전 같지 않다. 민준이 고개를 돌린다.' },
     ],
   },
 

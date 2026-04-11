@@ -134,7 +134,7 @@
 }
 
 .speaker-name::before {
-  content: '\u25b8 ';
+  content: '\25B8  ';
   font-size: 0.6rem;
 }
 
@@ -268,3 +268,30 @@
 
 .karma-hint.good { color: #6dab63; }
 .karma-hint.bad { color: #c44030; }
+
+/* === Random event === */
+.random-event-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.8rem;
+  background: rgba(207, 142, 52, 0.12);
+  border: 1px solid rgba(207, 142, 52, 0.35);
+  color: #cf8e34;
+  font-size: 0.7rem;
+  border-radius: 2px;
+  letter-spacing: 0.2rem;
+  margin-bottom: 1rem;
+  width: fit-content;
+  text-transform: uppercase;
+  animation: branchGlow 2s ease infinite;
+}
+
+.random-event-choice {
+  border-color: rgba(207, 142, 52, 0.2);
+}
+
+.random-event-choice:hover:not(.disabled) {
+  border-left-color: #cf8e34;
+  background: rgba(207, 142, 52, 0.08);
+}
