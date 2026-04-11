@@ -1,4 +1,4 @@
-import { useGameStore } from '../store/gameStore';
+import { useGameStore, TOTAL_ENDINGS } from '../store/gameStore';
 import './TitleScreen.css';
 
 export function TitleScreen() {
@@ -17,10 +17,9 @@ export function TitleScreen() {
             새 게임
           </button>
           <button className="btn-gallery" onClick={goToGallery}>
-            엔딩 갤러리 ({unlockedEndings.length}/5)
+            엔딩 갤러리 ({unlockedEndings.length}/{TOTAL_ENDINGS})
           </button>
         </div>
-        <p className="title-credit">Doctor Goblin Company</p>
       </div>
     </div>
   );

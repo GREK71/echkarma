@@ -1,33 +1,41 @@
 import { create } from 'zustand';
 import { clampKarma } from '../game/karma';
 import { createInitialNPCs, type NPCId, type NPCState } from '../game/npc';
+import { createInitialResources, applyResourceChange, isFoodConsumptionTurn, consumeFood, type Resources } from '../game/resources';
 import { scenes, type Choice } from '../data/scenes';
 import { determineEnding, type EndingId } from '../game/endings';
 
 export type GamePhase = 'title' | 'playing' | 'ending' | 'gallery';
 
+export interface ResourceEvent {
+  type: 'cost' | 'food_consumed' | 'starving';
+  message: string;
+}
+
 interface GameState {
   phase: GamePhase;
   turn: number;
   karma: number;
+  resources: Resources;
   npcs: Record<NPCId, NPCState>;
   currentSceneId: string;
   branchResults: Record<string, string>;
   endingId: EndingId | null;
   unlockedEndings: EndingId[];
   textHistory: string[];
+  lastResourceEvent: ResourceEvent | null;
 
-  // Actions
   startGame: () => void;
   setPhase: (phase: GamePhase) => void;
   makeChoice: (choice: Choice) => void;
   goToGallery: () => void;
+  clearResourceEvent: () => void;
 }
 
 function getStoredEndings(): EndingId[] {
   try {
     const stored = localStorage.getItem('echo-karma-endings');
-    return stored ? JSON.parse(stored) : [];
+    return stored ? (JSON.parse(stored) as EndingId[]) : [];
   } catch {
     return [];
   }
@@ -43,9 +51,7 @@ function findNextScene(
   npcs: Record<NPCId, NPCState>,
   karma: number
 ): string | null {
-  if (nextSceneId) {
-    return nextSceneId;
-  }
+  if (nextSceneId) return nextSceneId;
   const nextTurn = currentTurn + 1;
   const candidates = scenes.filter((s) => s.turn === nextTurn);
   for (const scene of candidates) {
@@ -56,43 +62,56 @@ function findNextScene(
       return scene.id;
     }
   }
-  // If multiple candidates with no condition match, pick first without condition
   const noCondition = candidates.find((s) => !s.condition);
   return noCondition?.id ?? candidates[0]?.id ?? null;
 }
+
+const TOTAL_ENDINGS = 6;
 
 export const useGameStore = create<GameState>((set, get) => ({
   phase: 'title',
   turn: 1,
   karma: 5,
+  resources: createInitialResources(),
   npcs: createInitialNPCs(),
   currentSceneId: 'act1_turn1',
   branchResults: {},
   endingId: null,
   unlockedEndings: getStoredEndings(),
   textHistory: [],
+  lastResourceEvent: null,
 
   startGame: () =>
     set({
       phase: 'playing',
       turn: 1,
       karma: 5,
+      resources: createInitialResources(),
       npcs: createInitialNPCs(),
       currentSceneId: 'act1_turn1',
       branchResults: {},
       endingId: null,
       textHistory: [],
+      lastResourceEvent: null,
     }),
 
   setPhase: (phase) => set({ phase }),
+  clearResourceEvent: () => set({ lastResourceEvent: null }),
 
   makeChoice: (choice) => {
     const state = get();
     let newKarma = clampKarma(state.karma + choice.karmaChange);
+    let newResources = { ...state.resources };
     const newNpcs = { ...state.npcs };
     const newBranches = { ...state.branchResults };
     const currentScene = scenes.find((s) => s.id === state.currentSceneId);
     const currentTurn = currentScene?.turn ?? state.turn;
+    let resourceEvent: ResourceEvent | null = null;
+
+    // Apply resource costs
+    if (choice.resourceCost) {
+      newResources = applyResourceChange(newResources, choice.resourceCost);
+    }
 
     // Apply NPC effects
     if (choice.npcEffect) {
@@ -112,7 +131,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Branch C karma restrictions
     if (currentScene?.id === 'branch_c') {
       if (choice.branchResult === 'c_dialogue' && state.karma > 8) {
-        // Can't dialogue with high karma - force different outcome
         newBranches['branch_c'] = 'c_kill';
       }
       if (choice.branchResult === 'c_spare' && state.karma > 4) {
@@ -123,10 +141,41 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    // Check if game should end
+    // Food consumption on specific turns
     const nextTurn = currentTurn + 1;
+    if (isFoodConsumptionTurn(nextTurn)) {
+      const before = newResources.hp;
+      newResources = consumeFood(newResources);
+      if (newResources.food === 0 && newResources.hp < before) {
+        resourceEvent = { type: 'starving', message: '식량이 바닥났다. 굶주림이 체력을 갉아먹는다.' };
+      } else {
+        resourceEvent = { type: 'food_consumed', message: '정착지의 식량이 소모되었다.' };
+      }
+    }
+
+    // Check HP death -> fallen ending
+    if (newResources.hp <= 0) {
+      const fallenId: EndingId = 'fallen';
+      const updatedEndings: EndingId[] = state.unlockedEndings.includes(fallenId)
+        ? state.unlockedEndings
+        : [...state.unlockedEndings, fallenId];
+      saveEndings(updatedEndings);
+      set({
+        karma: newKarma,
+        resources: newResources,
+        npcs: newNpcs,
+        branchResults: newBranches,
+        endingId: 'fallen',
+        unlockedEndings: updatedEndings,
+        phase: 'ending',
+        turn: currentTurn,
+        lastResourceEvent: null,
+      });
+      return;
+    }
+
+    // Check if game should end
     if (nextTurn > 20 || currentScene?.id === 'act3_turn20') {
-      // Determine ending
       const branchCResult = newBranches['branch_c'] ?? 'c_kill';
       let endingBranchC: 'kill_success' | 'kill_fail' | 'dialogue_success' | 'dialogue_fail' | 'spare';
       switch (branchCResult) {
@@ -144,20 +193,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       set({
         karma: newKarma,
+        resources: newResources,
         npcs: newNpcs,
         branchResults: newBranches,
         endingId: ending,
         unlockedEndings: updatedEndings,
         phase: 'ending',
         turn: currentTurn,
+        lastResourceEvent: null,
       });
       return;
     }
 
-    // Find next scene
     const nextSceneId = findNextScene(currentTurn, choice.nextScene, newNpcs, newKarma);
-
-    // Add to history
     const newHistory = [...state.textHistory];
     if (currentScene) {
       newHistory.push(currentScene.narration);
@@ -166,13 +214,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     set({
       karma: newKarma,
+      resources: newResources,
       npcs: newNpcs,
       branchResults: newBranches,
       turn: nextTurn,
       currentSceneId: nextSceneId ?? state.currentSceneId,
       textHistory: newHistory,
+      lastResourceEvent: resourceEvent,
     });
   },
 
   goToGallery: () => set({ phase: 'gallery' }),
 }));
+
+export { TOTAL_ENDINGS };

@@ -1,6 +1,6 @@
 import type { NPCId } from './npc';
 
-export type EndingId = 'wasteland_king' | 'karma_echo_ends' | 'survivor' | 'reconciliation' | 'atonement';
+export type EndingId = 'wasteland_king' | 'karma_echo_ends' | 'survivor' | 'reconciliation' | 'atonement' | 'fallen';
 
 export interface Ending {
   id: EndingId;
@@ -45,6 +45,13 @@ export const ENDINGS: Record<EndingId, Ending> = {
     subtitle: 'Atonement',
     description: '당신은 칸을 놓아주었다. 이설이 당신 곁에 서서 고개를 끄덕인다. 업보의 무게가 서서히 가벼워지는 것을 느끼며, 새로운 아침을 맞는다.',
     stars: 5,
+  },
+  fallen: {
+    id: 'fallen',
+    title: '쓰러진 자',
+    subtitle: 'The Fallen',
+    description: '끝내 몸이 버텨주지 못했다. 굶주림과 상처가 쌓여 당신은 폐허 한가운데 쓰러진다. 의식이 흐려지며, 메아리만이 남는다.',
+    stars: 0,
   },
 };
 

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { scenes } from '../data/scenes';
+import { RESOURCE_CONFIG } from '../game/resources';
 import { KarmaGauge } from './KarmaGauge';
 import { NPCStatus } from './NPCStatus';
+import { ResourceBar } from './ResourceBar';
 import './GameScreen.css';
 
 export function GameScreen() {
-  const { currentSceneId, karma, npcs, makeChoice } = useGameStore();
+  const { currentSceneId, karma, resources, npcs, makeChoice, clearResourceEvent } = useGameStore();
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
   const [showChoices, setShowChoices] = useState(false);
@@ -18,6 +20,7 @@ export function GameScreen() {
     setDisplayedText('');
     setIsTyping(true);
     setShowChoices(false);
+    clearResourceEvent();
 
     let i = 0;
     const text = scene.narration;
@@ -32,7 +35,7 @@ export function GameScreen() {
     }, 30);
 
     return () => clearInterval(interval);
-  }, [currentSceneId, scene]);
+  }, [currentSceneId]);
 
   const handleSkip = () => {
     if (isTyping && scene) {
@@ -46,19 +49,16 @@ export function GameScreen() {
     if (!scene) return;
     const choice = scene.choices[choiceIndex];
 
-    // Check karma restrictions for branch C
     if (scene.id === 'branch_c') {
-      if (choice.branchResult === 'c_spare' && karma > 4) {
-        return; // Can't spare with high karma
-      }
-      if (choice.branchResult === 'c_dialogue' && karma > 8) {
-        return; // Can't dialogue with very high karma
-      }
+      if (choice.branchResult === 'c_spare' && karma > 4) return;
+      if (choice.branchResult === 'c_dialogue' && karma > 8) return;
     }
+    if (scene.id === 'branch_b' && choice.branchResult === 'b_luka_negotiate' && !npcs.luka.revealed) return;
 
-    // Check if luka negotiation is available
-    if (scene.id === 'branch_b' && choice.branchResult === 'b_luka_negotiate') {
-      if (!npcs.luka.revealed) return;
+    // Check resource requirements
+    if (choice.requireResource) {
+      const { resource, min } = choice.requireResource;
+      if (resources[resource] < min) return;
     }
 
     setShowChoices(false);
@@ -76,6 +76,7 @@ export function GameScreen() {
           <span className="act-label">{actLabel}</span>
           <span className="turn-label">턴 {scene.turn}/20</span>
         </div>
+        <ResourceBar />
         <KarmaGauge />
         <NPCStatus />
       </div>
@@ -101,16 +102,35 @@ export function GameScreen() {
           if (scene.id === 'branch_c') {
             if (choice.branchResult === 'c_spare' && karma > 4) {
               disabled = true;
-              lockReason = '(업보 ≤4 필요)';
+              lockReason = '업보 \u22644 필요';
             }
             if (choice.branchResult === 'c_dialogue' && karma > 8) {
               disabled = true;
-              lockReason = '(업보 ≤8 필요)';
+              lockReason = '업보 \u22648 필요';
             }
           }
           if (scene.id === 'branch_b' && choice.branchResult === 'b_luka_negotiate' && !npcs.luka.revealed) {
             disabled = true;
-            lockReason = '(루카를 만나지 못했다)';
+            lockReason = '루카를 만나지 못했다';
+          }
+
+          // Resource requirement check
+          if (choice.requireResource) {
+            const { resource, min } = choice.requireResource;
+            if (resources[resource] < min) {
+              disabled = true;
+              lockReason = `${RESOURCE_CONFIG[resource].label} ${min} 이상 필요`;
+            }
+          }
+
+          // Build resource cost hints
+          const costHints: string[] = [];
+          if (choice.resourceCost) {
+            for (const [key, val] of Object.entries(choice.resourceCost)) {
+              if (val === 0) continue;
+              const cfg = RESOURCE_CONFIG[key as keyof typeof RESOURCE_CONFIG];
+              costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
+            }
           }
 
           return (
@@ -120,13 +140,18 @@ export function GameScreen() {
               onClick={() => handleChoice(idx)}
               disabled={disabled}
             >
-              {choice.text}
-              {lockReason && <span className="lock-reason">{lockReason}</span>}
-              {choice.karmaChange !== 0 && !disabled && (
-                <span className={`karma-hint ${choice.karmaChange > 0 ? 'bad' : 'good'}`}>
-                  {choice.karmaChange > 0 ? `+${choice.karmaChange}` : choice.karmaChange}
-                </span>
-              )}
+              <span className="choice-text">{choice.text}</span>
+              <span className="choice-hints">
+                {lockReason && <span className="lock-reason">{lockReason}</span>}
+                {!disabled && costHints.length > 0 && (
+                  <span className="cost-hints">{costHints.join(' ')}</span>
+                )}
+                {!disabled && choice.karmaChange !== 0 && (
+                  <span className={`karma-hint ${choice.karmaChange > 0 ? 'bad' : 'good'}`}>
+                    {choice.karmaChange > 0 ? `+${choice.karmaChange}` : choice.karmaChange}
+                  </span>
+                )}
+              </span>
             </button>
           );
         })}

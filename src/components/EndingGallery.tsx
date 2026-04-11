@@ -1,4 +1,4 @@
-import { useGameStore } from '../store/gameStore';
+import { useGameStore, TOTAL_ENDINGS } from '../store/gameStore';
 import { ENDINGS, type EndingId } from '../game/endings';
 import './EndingGallery.css';
 
@@ -8,6 +8,7 @@ const ENDING_ORDER: EndingId[] = [
   'survivor',
   'karma_echo_ends',
   'wasteland_king',
+  'fallen',
 ];
 
 export function EndingGallery() {
@@ -21,7 +22,7 @@ export function EndingGallery() {
           &larr; 돌아가기
         </button>
         <h2 className="gallery-title">엔딩 갤러리</h2>
-        <p className="gallery-count">{unlockedEndings.length}/5 달성</p>
+        <p className="gallery-count">{unlockedEndings.length}/{TOTAL_ENDINGS} 달성</p>
       </div>
 
       <div className="gallery-list">
