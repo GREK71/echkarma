@@ -1,0 +1,40 @@
+.npc-status {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0;
+}
+
+.npc-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  background: #1a1a2e;
+  border: 1px solid #333;
+}
+
+.npc-chip.alive .npc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ecdc4;
+}
+
+.npc-chip.dead .npc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e74c3c;
+}
+
+.npc-chip.dead .npc-name {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.npc-name {
+  color: #ccc;
+}

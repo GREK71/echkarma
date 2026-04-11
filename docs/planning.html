@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업보의 메아리 — 스토리 기획서 v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&family=Teko:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #0f0f18;
+    --bg3: #14141f;
+    --surface: #1a1a28;
+    --surface2: #20202f;
+    --border: #2a2a3f;
+    --text: #e8e4dc;
+    --text-dim: #9490a0;
+    --text-faint: #5a5570;
+    --gold: #c9a84c;
+    --gold-dim: #7a6030;
+    --red: #c84848;
+    --red-dim: #6a2020;
+    --blue: #4878c8;
+    --blue-dim: #203060;
+    --green: #48a870;
+    --green-dim: #1a4030;
+    --yellow: #c8a840;
+    --yellow-dim: #604820;
+    --purple: #8858c8;
+    --purple-dim: #3a1f60;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── SIDEBAR NAV ─── */
+  .sidenav {
+    position: fixed;
+    left: 0; top: 0;
+    width: 220px;
+    height: 100vh;
+    background: rgba(10,10,15,0.92);
+    border-right: 1px solid var(--border);
+    padding: 40px 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidenav-logo {
+    padding: 0 24px 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .sidenav-logo .ko {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 900;
+    font-size: 15px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    display: block;
+  }
+
+  .sidenav-logo .en {
+    font-family: 'Teko', sans-serif;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .sidenav a {
+    display: block;
+    padding: 9px 24px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+  }
+
+  .sidenav a:hover {
+    color: var(--gold);
+    border-left-color: var(--gold);
+    background: rgba(201,168,76,0.05);
+    padding-left: 30px;
+  }
+
+  .sidenav-section {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 16px 24px 6px;
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  .main {
+    margin-left: 220px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    padding: 100px 80px 80px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: 'KARMA';
+    position: absolute;
+    right: 60px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Teko', sans-serif;
+    font-size: 180px;
+    font-weight: 600;
+    color: rgba(201,168,76,0.04);
+    letter-spacing: -0.02em;
+    user-select: none;
+    line-height: 1;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'Teko', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 4px 12px;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .hero h1 span { color: var(--gold); }
+
+  .hero-sub {
+    font-family: 'Teko', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .hero-quote {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px;
+    color: var(--text-dim);
+    font-style: italic;
+    border-left: 3px solid var(--gold-dim);
+    padding-left: 20px;
+    max-width: 560px;
+    line-height: 1.8;
+  }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    padding: 72px 80px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section:nth-child(even) { background: var(--bg2); }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .section-num {
+    font-family: 'Teko', sans-serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: var(--gold-dim);
+    line-height: 1;
+  }
+
+  .section-title {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--text);
+  }
+
+  /* ─── ACT STRUCTURE ─── */
+  .acts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-bottom: 40px;
+  }
+
+  .act {
+    background: var(--surface);
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .act::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .act:nth-child(1)::before { background: var(--blue); }
+  .act:nth-child(2)::before { background: var(--yellow); }
+  .act:nth-child(3)::before { background: var(--red); }
+
+  .act-label {
+    font-family: 'Teko', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .act-title {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .act:nth-child(1) .act-title { color: var(--blue); }
+  .act:nth-child(2) .act-title { color: var(--yellow); }
+  .act:nth-child(3) .act-title { color: var(--red); }
+
+  .act-turns {
+    font-family: 'Teko', sans-serif;
+    font-size: 13px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+
+  .act p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ─── NPC TABLE ─── */
+  .npc-grid {
+    display: grid;
+    gap: 2px;
+  }
+
+  .npc-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr 1fr;
+    gap: 2px;
+  }
+
+  .npc-row.header {
+    margin-bottom: 4px;
+  }
+
+  .npc-cell {
+    background: var(--surface);
+    padding: 16px 20px;
+    font-size: 13px;
+  }
+
+  .npc-row.header .npc-cell {
+    background: var(--surface2);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 10px 20px;
+    font-family: 'Teko', sans-serif;
+  }
+
+  .npc-name {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .npc-role {
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  .npc-cell .survive-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .tag-hard { background: var(--red-dim); color: var(--red); }
+  .tag-mid { background: var(--yellow-dim); color: var(--yellow); }
+  .tag-easy { background: var(--green-dim); color: var(--green); }
+
+  /* ─── BRANCH POINTS ─── */
+  .branch {
+    margin-bottom: 56px;
+  }
+
+  .branch-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .branch-dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .dot-a { background: var(--blue-dim); color: var(--blue); }
+  .dot-b { background: var(--yellow-dim); color: var(--yellow); }
+  .dot-c { background: var(--red-dim); color: var(--red); }
+
+  .branch-title-wrap h3 {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 20px;
+  }
+
+  .branch-title-wrap p {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+
+  .branch-scenario {
+    background: var(--surface);
+    padding: 20px 24px;
+    border-left: 3px solid var(--border);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    line-height: 1.8;
+    font-style: italic;
+  }
+
+  .choices {
+    display: grid;
+    gap: 2px;
+  }
+
+  .choice {
+    display: grid;
+    grid-template-columns: 36px 1fr 180px 1fr;
+    gap: 0;
+    background: var(--surface);
+    overflow: hidden;
+    transition: background 0.15s;
+  }
+
+  .choice:hover { background: var(--surface2); }
+
+  .choice-num {
+    background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif;
+    font-size: 16px;
+    color: var(--text-faint);
+    border-right: 1px solid var(--border);
+  }
+
+  .choice-action {
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    border-right: 1px solid var(--border);
+  }
+
+  .choice-cond {
+    padding: 14px 18px;
+    font-size: 11px;
+    color: var(--text-dim);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+
+  .choice-result {
+    padding: 14px 18px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .cond-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .cond-any { background: var(--surface2); color: var(--text-faint); }
+  .cond-karma { background: var(--blue-dim); color: var(--blue); }
+  .cond-npc { background: var(--purple-dim); color: var(--purple); }
+
+  .deck-change {
+    margin-top: 16px;
+    background: rgba(201,168,76,0.05);
+    border: 1px solid var(--gold-dim);
+    padding: 16px 20px;
+  }
+
+  .deck-change-title {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    font-family: 'Teko', sans-serif;
+  }
+
+  .deck-change ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .deck-change li {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .deck-change li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold-dim);
+  }
+
+  /* ─── ENDINGS ─── */
+  .endings-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    margin-bottom: 40px;
+  }
+
+  .ending {
+    background: var(--surface);
+    overflow: hidden;
+    cursor: default;
+    transition: transform 0.2s;
+    position: relative;
+  }
+
+  .ending:hover { transform: translateY(-4px); }
+
+  .ending-top {
+    height: 6px;
+  }
+
+  .ending-e1 .ending-top { background: #1a1a1a; }
+  .ending-e2 .ending-top { background: var(--red); }
+  .ending-e3 .ending-top { background: var(--yellow); }
+  .ending-e4 .ending-top { background: var(--blue); }
+  .ending-e5 .ending-top { background: var(--green); }
+
+  .ending-body { padding: 20px; }
+
+  .ending-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .ending-num {
+    font-family: 'Teko', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+
+  .ending-title {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .ending-e1 .ending-title { color: #888; }
+  .ending-e2 .ending-title { color: var(--red); }
+  .ending-e3 .ending-title { color: var(--yellow); }
+  .ending-e4 .ending-title { color: var(--blue); }
+  .ending-e5 .ending-title { color: var(--green); }
+
+  .ending-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .ending-conds {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cond-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--text-faint);
+  }
+
+  .cond-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .difficulty {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .difficulty-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .diff-dots {
+    display: flex;
+    gap: 3px;
+  }
+
+  .diff-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .diff-dot.on { background: var(--gold); }
+
+  /* ─── SUMMARY TABLE ─── */
+  .summary-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 2px;
+  }
+
+  .summary-table th {
+    background: var(--surface2);
+    padding: 10px 16px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-family: 'Teko', sans-serif;
+    font-weight: 400;
+    text-align: left;
+  }
+
+  .summary-table td {
+    background: var(--surface);
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    vertical-align: middle;
+  }
+
+  .summary-table td:first-child {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ─── DECK CHANGES TABLE ─── */
+  .deck-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 2px;
+  }
+
+  .deck-table th {
+    background: var(--surface2);
+    padding: 10px 16px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-family: 'Teko', sans-serif;
+    font-weight: 400;
+    text-align: left;
+  }
+
+  .deck-table td {
+    background: var(--surface);
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+
+  .deck-table td:first-child {
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  /* ─── NEXT STEPS ─── */
+  .nextsteps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+
+  .nextstep {
+    background: var(--surface);
+    padding: 24px 20px;
+    transition: background 0.15s;
+  }
+
+  .nextstep:hover { background: var(--surface2); }
+
+  .nextstep-num {
+    font-family: 'Teko', sans-serif;
+    font-size: 40px;
+    font-weight: 300;
+    color: var(--gold-dim);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .nextstep h4 {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .nextstep p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ─── UTILS ─── */
+  .tag-karma { color: var(--yellow); font-weight: 500; }
+  .tag-npc { color: var(--purple); font-weight: 500; }
+  .tag-branch { color: var(--blue); font-weight: 500; }
+  .tag-deck { color: var(--green); font-weight: 500; }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 40px 0;
+  }
+
+  .note {
+    background: rgba(201,168,76,0.06);
+    border: 1px solid var(--gold-dim);
+    padding: 16px 20px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-top: 20px;
+  }
+
+  .note strong { color: var(--gold); }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    padding: 40px 80px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-title {
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--gold);
+  }
+
+  .footer-meta {
+    font-size: 11px;
+    color: var(--text-faint);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidenav">
+  <div class="sidenav-logo">
+    <span class="ko">업보의 메아리</span>
+    <span class="en">Echo of Karma</span>
+  </div>
+  <div class="sidenav-section">기획서</div>
+  <a href="#overview">기획 방향</a>
+  <a href="#structure">3막 구조</a>
+  <a href="#npc">주요 NPC</a>
+  <div class="sidenav-section">분기점</div>
+  <a href="#branch-a">분기점 A — 민준</a>
+  <a href="#branch-b">분기점 B — 정 노인</a>
+  <a href="#branch-c">분기점 C — 칸</a>
+  <div class="sidenav-section">결말</div>
+  <a href="#endings">5가지 결말</a>
+  <a href="#summary">분기 조건표</a>
+  <a href="#deck">덱 변화 요약</a>
+  <a href="#nextsteps">다음 단계</a>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge">Story Design Document · v1.0</div>
+    <h1>업보의 <span>메아리</span></h1>
+    <p class="hero-sub">Echo of Karma — 스토리 기획서</p>
+    <p class="hero-quote">
+      "어떻게 싸웠느냐가 아니라,<br>
+      누구를 살렸느냐와 무엇을 포기했느냐가<br>
+      결말을 결정한다."
+    </p>
+  </section>
+
+  <!-- 1. 기획 방향 -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">기획 방향</h2>
+    </div>
+
+    <p style="font-size:14px; color:var(--text-dim); max-width:680px; line-height:1.9; margin-bottom:32px;">
+      기존 메카닉(카드/주사위/업보)은 유지하되, <strong style="color:var(--text);">스토리 레이어</strong>를 덮어씌워 플레이어의 선택이 단순한 수치 변화가 아닌 <strong style="color:var(--gold);">서사적 결과</strong>로 이어지게 한다. 분기는 세 가지 기준이 복합적으로 작동한다.
+    </p>
+
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px;">
+      <div style="background:var(--surface); padding:24px 20px;">
+        <div style="font-family:'Teko',sans-serif; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:10px;">기준 1</div>
+        <div style="font-family:'Noto Serif KR',serif; font-weight:700; font-size:16px; margin-bottom:8px;">업보(Karma) 수치</div>
+        <div style="font-size:12px; color:var(--text-dim); line-height:1.7;">누적된 업보 수치가 분기점 선택지 해금 조건과 최종 결말 분기에 직접 영향을 준다.</div>
+      </div>
+      <div style="background:var(--surface); padding:24px 20px;">
+        <div style="font-family:'Teko',sans-serif; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--blue); margin-bottom:10px;">기준 2</div>
+        <div style="font-family:'Noto Serif KR',serif; font-weight:700; font-size:16px; margin-bottom:8px;">분기점 선택</div>
+        <div style="font-size:12px; color:var(--text-dim); line-height:1.7;">A/B/C 세 분기점에서의 선택이 이후 덱 구성과 NPC 생존 여부를 바꾼다.</div>
+      </div>
+      <div style="background:var(--surface); padding:24px 20px;">
+        <div style="font-family:'Teko',sans-serif; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--purple); margin-bottom:10px;">기준 3</div>
+        <div style="font-family:'Noto Serif KR',serif; font-weight:700; font-size:16px; margin-bottom:8px;">NPC 생존 여부</div>
+        <div style="font-size:12px; color:var(--text-dim); line-height:1.7;">이설, 루카, 정 노인의 생사가 분기점 해금 조건과 결말 진입 조건을 결정한다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 3막 구조 -->
+  <section class="section" id="structure">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">전체 구조 — 3막 구성</h2>
+    </div>
+
+    <div class="acts">
+      <div class="act">
+        <div class="act-label">Act 1</div>
+        <div class="act-title">도입 & 세계 파악</div>
+        <div class="act-turns">턴 1 ~ 7</div>
+        <p>플레이어가 세계관에 적응하고 이설, 민준과의 관계를 형성한다. 7턴 종료 후 <strong>분기점 A</strong> 발동.</p>
+      </div>
+      <div class="act">
+        <div class="act-label">Act 2</div>
+        <div class="act-title">갈등 심화</div>
+        <div class="act-turns">턴 8 ~ 14</div>
+        <p>약탈자 집단의 위협이 고조된다. 루카와의 접촉이 발생하며 14턴 종료 후 <strong>분기점 B</strong> 발동.</p>
+      </div>
+      <div class="act">
+        <div class="act-label">Act 3</div>
+        <div class="act-title">클라이맥스</div>
+        <div class="act-turns">턴 15 ~ 20</div>
+        <p>최종 적 칸과 대면한다. 19턴에 <strong>분기점 C</strong> 발동. 20턴 생존 시 결말 진입.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>이벤트 카드 시스템</strong> — 각 분기점은 기존 상대 덱과 별도로 관리되는 스토리 이벤트 카드로 연결된다. 해당 턴이 되면 자동 발동되며, 플레이어의 선택으로 이후 덱 구성이 달라진다.
+    </div>
+  </section>
+
+  <!-- 3. NPC -->
+  <section class="section" id="npc">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">주요 NPC — 생존 여부가 분기에 영향</h2>
+    </div>
+
+    <div class="npc-grid">
+      <div class="npc-row header">
+        <div class="npc-cell">NPC</div>
+        <div class="npc-cell">역할</div>
+        <div class="npc-cell">등장 시점</div>
+        <div class="npc-cell">생존 조건</div>
+      </div>
+      <div class="npc-row">
+        <div class="npc-cell">
+          <span class="npc-name">정 노인</span>
+          <span class="npc-role">장로</span>
+        </div>
+        <div class="npc-cell">둥지의 정신적 지주. 인간 존엄을 고수하는 원칙주의자.</div>
+        <div class="npc-cell">프롤로그 / 2막</div>
+        <div class="npc-cell"><span class="survive-tag tag-hard">어려움</span><br><span style="font-size:11px;color:var(--text-dim);margin-top:4px;display:block;">분기점 B에서 보호 선택</span></div>
+      </div>
+      <div class="npc-row">
+        <div class="npc-cell">
+          <span class="npc-name">이설</span>
+          <span class="npc-role">동료 파수꾼</span>
+        </div>
+        <div class="npc-cell">플레이어의 거울. 살생에 익숙해지는 플레이어를 지켜보며 거리를 둔다.</div>
+        <div class="npc-cell">1막 중반부터</div>
+        <div class="npc-cell"><span class="survive-tag tag-mid">조건부</span><br><span style="font-size:11px;color:var(--text-dim);margin-top:4px;display:block;">업보 ≤ 6 또는 분기점 A 대화 선택</span></div>
+      </div>
+      <div class="npc-row">
+        <div class="npc-cell">
+          <span class="npc-name">민준</span>
+          <span class="npc-role">아이</span>
+        </div>
+        <div class="npc-cell">플레이어를 영웅처럼 바라보는 어린 존재. 죄책감의 상징.</div>
+        <div class="npc-cell">1막 후반</div>
+        <div class="npc-cell"><span class="survive-tag tag-mid">조건부</span><br><span style="font-size:11px;color:var(--text-dim);margin-top:4px;display:block;">분기점 A 결과에 따라 결정</span></div>
+      </div>
+      <div class="npc-row">
+        <div class="npc-cell">
+          <span class="npc-name">루카</span>
+          <span class="npc-role">여행자</span>
+        </div>
+        <div class="npc-cell">숨겨진 조력자. 대화로 접촉해야만 나타나는 존재.</div>
+        <div class="npc-cell">2막 초반</div>
+        <div class="npc-cell"><span class="survive-tag tag-hard">조건부</span><br><span style="font-size:11px;color:var(--text-dim);margin-top:4px;display:block;">살생 없이 대화 접촉 시 생존</span></div>
+      </div>
+      <div class="npc-row">
+        <div class="npc-cell">
+          <span class="npc-name">칸</span>
+          <span class="npc-role">약탈자 두목</span>
+        </div>
+        <div class="npc-cell">최종 적대 NPC. 핵전쟁 이전 같은 공동체 출신이라는 반전이 있다.</div>
+        <div class="npc-cell">3막 (분기점 C)</div>
+        <div class="npc-cell"><span class="survive-tag tag-easy">적대 고정</span><br><span style="font-size:11px;color:var(--text-dim);margin-top:4px;display:block;">결말에 따라 처리 방식 결정</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 분기점 A -->
+  <section class="section" id="branch-a">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">분기점 이벤트</h2>
+    </div>
+
+    <div class="branch">
+      <div class="branch-header">
+        <div class="branch-dot dot-a">A</div>
+        <div class="branch-title-wrap">
+          <h3>"민준의 선택"</h3>
+          <p>7턴 종료 후 발동 · 1막 클라이맥스</p>
+        </div>
+      </div>
+
+      <div class="branch-scenario">
+        바깥에 나간 민준이 약탈자에게 붙잡혔다. 약탈자는 식량을 요구한다. 이설이 옆에 있다. 지금 이 순간의 선택이 이설과의 관계, 민준의 생사, 이후 덱 구성을 모두 바꾼다.
+      </div>
+
+      <div class="choices">
+        <div class="choice" style="background:var(--surface2);">
+          <div class="choice-num" style="font-family:'Teko',sans-serif;font-size:10px;letter-spacing:0.1em;color:var(--text-faint);">선택</div>
+          <div class="choice-action" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">행동</div>
+          <div class="choice-cond" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">조건</div>
+          <div class="choice-result" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">결과</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">①</div>
+          <div class="choice-action">식량을 준다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">민준 생존 / 식량 −2 / 이설 신뢰 +1</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">②</div>
+          <div class="choice-action">약탈자를 공격한다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">살생 판정 → 성공: 민준 생존+업보+1 / 실패: 민준 사망+HP−4</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">③</div>
+          <div class="choice-action">대화로 설득한다</div>
+          <div class="choice-cond"><span class="cond-tag cond-karma">업보 ≤ 5</span></div>
+          <div class="choice-result">대화 판정(R=4) → 성공: 민준 생존+업보−1 / 실패: 식량−3</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">④</div>
+          <div class="choice-action">자리를 피한다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">민준 사망 / 업보 +2 / 이설 관계 붕괴</div>
+        </div>
+      </div>
+
+      <div class="deck-change">
+        <div class="deck-change-title">분기점 A 이후 덱 변화</div>
+        <ul>
+          <li><strong style="color:var(--text);">민준 생존</strong> → 행동 덱에 <span class="tag-deck">민준의 부탁</span> 추가 (MP0, 이번 턴 대화 주사위 +1, 1회용)</li>
+          <li><strong style="color:var(--text);">민준 사망</strong> → 메아리 덱에 <span class="tag-karma">아이의 울음</span> 추가 (Echo: 턴 종료 시 MP −1)</li>
+          <li><strong style="color:var(--text);">이설 관계 붕괴</strong> → 2막부터 이설 이벤트 카드 전부 제거</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 분기점 B -->
+    <div class="branch" id="branch-b">
+      <div class="branch-header">
+        <div class="branch-dot dot-b">B</div>
+        <div class="branch-title-wrap">
+          <h3>"정 노인의 결단"</h3>
+          <p>14턴 종료 후 발동 · 2막 클라이맥스</p>
+        </div>
+      </div>
+
+      <div class="branch-scenario">
+        약탈자 집단이 둥지를 포위했다. 정 노인이 자신이 인질로 나가겠다고 한다. 칸(두목)은 정 노인 한 명이면 나머지는 보내주겠다고 제안한다. 루카의 생존 여부에 따라 숨겨진 선택지가 해금된다.
+      </div>
+
+      <div class="choices">
+        <div class="choice" style="background:var(--surface2);">
+          <div class="choice-num" style="font-family:'Teko',sans-serif;font-size:10px;letter-spacing:0.1em;color:var(--text-faint);">선택</div>
+          <div class="choice-action" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">행동</div>
+          <div class="choice-cond" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">조건</div>
+          <div class="choice-result" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">결과</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">①</div>
+          <div class="choice-action">정 노인의 뜻을 따른다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">정 노인 사망 / 3막 상대 덱 약화 (칸이 약속 일부 이행)</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">②</div>
+          <div class="choice-action">정 노인을 막고 싸운다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">정 노인 생존 / 즉시 전투 이벤트 3연속 / 업보 +2 위험</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">③</div>
+          <div class="choice-action">루카를 통해 협상한다</div>
+          <div class="choice-cond"><span class="cond-tag cond-npc">루카 생존 시만</span></div>
+          <div class="choice-result">정 노인 생존 / 대화 판정(R=6) → 성공: 루카 생존, 실패: 루카 사망</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">④</div>
+          <div class="choice-action">둥지를 버리고 도망친다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">정 노인+둥지 전원 사망 / 업보 +3 / 3막 완전히 혼자</div>
+        </div>
+      </div>
+
+      <div class="deck-change">
+        <div class="deck-change-title">분기점 B 이후 덱 변화</div>
+        <ul>
+          <li><strong style="color:var(--text);">정 노인 생존</strong> → 행동 덱에 <span class="tag-deck">장로의 말씀</span> 추가 (MP1, Karma −1, 3회용)</li>
+          <li><strong style="color:var(--text);">정 노인 사망</strong> → 메아리 덱에 <span class="tag-karma">빈 의자</span> 추가 (Echo: 살생 판정 시 주사위 −1)</li>
+          <li><strong style="color:var(--text);">둥지 포기</strong> → 3막 상대 덱이 <span class="tag-karma">약탈자 강화판</span>으로 교체 (공격력A 전체 +1)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 분기점 C -->
+    <div class="branch" id="branch-c">
+      <div class="branch-header">
+        <div class="branch-dot dot-c">C</div>
+        <div class="branch-title-wrap">
+          <h3>"칸과의 대면"</h3>
+          <p>19턴 발동 · 최종 전투 직전</p>
+        </div>
+      </div>
+
+      <div class="branch-scenario">
+        마침내 칸과 단둘이 마주쳤다. 칸은 사실 핵전쟁 이전 같은 공동체 출신이었다. 그도 살아남기 위해 약탈자가 됐다. 이설의 생존 여부와 누적된 업보가 선택지를 결정한다.
+      </div>
+
+      <div class="choices">
+        <div class="choice" style="background:var(--surface2);">
+          <div class="choice-num" style="font-family:'Teko',sans-serif;font-size:10px;letter-spacing:0.1em;color:var(--text-faint);">선택</div>
+          <div class="choice-action" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">행동</div>
+          <div class="choice-cond" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">조건</div>
+          <div class="choice-result" style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);font-family:'Teko',sans-serif;">결말 연결</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">①</div>
+          <div class="choice-action">칸을 죽인다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">살생 판정 → 성공/실패 여부와 업보 조합으로 결말 1~3 중 분기</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">②</div>
+          <div class="choice-action">칸과 대화한다</div>
+          <div class="choice-cond"><span class="cond-tag cond-karma">업보 ≤ 8</span></div>
+          <div class="choice-result">대화 판정(R=7) → 성공 시 결말 4 "화해" 진입</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">③</div>
+          <div class="choice-action">칸에게 항복한다</div>
+          <div class="choice-cond"><span class="cond-tag cond-any">항상 가능</span></div>
+          <div class="choice-result">즉시 결말 2 "메아리의 끝" 진입</div>
+        </div>
+        <div class="choice">
+          <div class="choice-num">④</div>
+          <div class="choice-action">칸을 살려주고 떠난다</div>
+          <div class="choice-cond"><span class="cond-tag cond-npc">이설 생존</span> + <span class="cond-tag cond-karma" style="margin-left:4px;">업보 ≤ 4</span></div>
+          <div class="choice-result">결말 5 "속죄" 진입</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 결말 -->
+  <section class="section" id="endings">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">5가지 결말</h2>
+    </div>
+
+    <div class="endings-grid">
+
+      <div class="ending ending-e1">
+        <div class="ending-top"></div>
+        <div class="ending-body">
+          <span class="ending-icon">⚫</span>
+          <div class="ending-num">ENDING 1</div>
+          <div class="ending-title">폐허의 왕</div>
+          <div class="ending-desc">살아남았다. 칸의 자리를 차지한 당신은 이제 약탈자 집단의 두목이 됐다. 민준은 당신을 더 이상 영웅이라 부르지 않는다. 거울 속 얼굴이 낯설다.</div>
+          <div class="ending-conds">
+            <div class="cond-item"><div class="cond-dot" style="background:#666;"></div>업보 ≥ 9</div>
+            <div class="cond-item"><div class="cond-dot" style="background:#666;"></div>칸을 살생 성공</div>
+          </div>
+          <div class="difficulty">
+            <span class="difficulty-label">도달 난이도</span>
+            <div class="diff-dots">
+              <div class="diff-dot on"></div>
+              <div class="diff-dot"></div>
+              <div class="diff-dot"></div>
+              <div class="diff-dot"></div>
+              <div class="diff-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ending ending-e2">
+        <div class="ending-top"></div>
+        <div class="ending-body">
+          <span class="ending-icon">🔴</span>
+          <div class="ending-num">ENDING 2</div>
+          <div class="ending-title">메아리의 끝</div>
+          <div class="ending-desc">결정적인 순간에 손이 떨렸다. 죽인 자들의 목소리가 너무 커졌기 때문이다. 칸은 당신을 살려뒀다. 둥지로 돌아왔지만, 당신 안의 무언가는 이미 돌아오지 못했다.</div>
+          <div class="ending-conds">
+            <div class="cond-item"><div class="cond-dot" style="background:var(--red);"></div>업보 ≥ 9</div>
+            <div class="cond-item"><div class="cond-dot" style="background:var(--red);"></div>칸 살생 실패 또는 항복</div>
+          </div>
+          <div class="difficulty">
+            <span class="difficulty-label">도달 난이도</span>
+            <div class="diff-dots">
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot"></div>
+              <div class="diff-dot"></div>
+              <div class="diff-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ending ending-e3">
+        <div class="ending-top"></div>
+        <div class="ending-body">
+          <span class="ending-icon">🟡</span>
+          <div class="ending-num">ENDING 3</div>
+          <div class="ending-title">생존자</div>
+          <div class="ending-desc">완벽하지 않았다. 해야 할 일을 했고, 하지 말아야 할 일도 몇 번 했다. 이설은 여전히 곁에 있지만 예전처럼 웃지는 않는다. 둥지는 살아남았다.</div>
+          <div class="ending-conds">
+            <div class="cond-item"><div class="cond-dot" style="background:var(--yellow);"></div>업보 4~8</div>
+            <div class="cond-item"><div class="cond-dot" style="background:var(--yellow);"></div>칸을 살생 성공</div>
+            <div class="cond-item"><div class="cond-dot" style="background:var(--yellow);"></div>NPC 1~2명 생존</div>
+          </div>
+          <div class="difficulty">
+            <span class="difficulty-label">도달 난이도</span>
+            <div class="diff-dots">
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot"></div>
+              <div class="diff-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ending ending-e4">
+        <div class="ending-top"></div>
+        <div class="ending-body">
+          <span class="ending-icon">🔵</span>
+          <div class="ending-num">ENDING 4</div>
+          <div class="ending-title">화해</div>
+          <div class="ending-desc">칸은 오래 침묵했다. 그리고 말했다. "우리가 다른 선택을 했다면." 당신은 손을 내밀었다. 칸의 무리 일부가 둥지에 합류했다. 쉽지 않은 공존이 시작됐다.</div>
+          <div class="ending-conds">
+            <div class="cond-item"><div class="cond-dot" style="background:var(--blue);"></div>업보 ≤ 8</div>
+            <div class="cond-item"><div class="cond-dot" style="background:var(--blue);"></div>칸과 대화 성공 (R=7)</div>
+            <div class="cond-item"><div class="cond-dot" style="background:var(--blue);"></div>NPC 2명 이상 생존</div>
+          </div>
+          <div class="difficulty">
+            <span class="difficulty-label">도달 난이도</span>
+            <div class="diff-dots">
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ending ending-e5">
+        <div class="ending-top"></div>
+        <div class="ending-body">
+          <span class="ending-icon">🟢</span>
+          <div class="ending-num">ENDING 5</div>
+          <div class="ending-title">속죄</div>
+          <div class="ending-desc">당신은 총을 내렸다. "더 이상 이 무게를 늘리고 싶지 않아서." 둥지로 돌아오는 길, 이설이 처음으로 당신의 손을 잡았다. 메아리는 여전히 들린다. 하지만 조금씩, 작아지고 있다.</div>
+          <div class="ending-conds">
+            <div class="cond-item"><div class="cond-dot" style="background:var(--green);"></div>업보 ≤ 4</div>
+            <div class="cond-item"><div class="cond-dot" style="background:var(--green);"></div>이설 생존</div>
+            <div class="cond-item"><div class="cond-dot" style="background:var(--green);"></div>칸을 살려주고 떠남</div>
+          </div>
+          <div class="difficulty">
+            <span class="difficulty-label">도달 난이도</span>
+            <div class="diff-dots">
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+              <div class="diff-dot on"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 6. 요약표 -->
+  <section class="section" id="summary">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">결말 분기 조건 요약</h2>
+    </div>
+
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>결말</th>
+          <th>업보 조건</th>
+          <th>분기점 C 선택</th>
+          <th>NPC 생존</th>
+          <th>점수</th>
+          <th>도달 난이도</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>⚫ 폐허의 왕</td>
+          <td>≥ 9</td>
+          <td>살생 성공</td>
+          <td>무관</td>
+          <td style="color:var(--red-dim);">최하</td>
+          <td>★☆☆☆☆</td>
+        </tr>
+        <tr>
+          <td>🔴 메아리의 끝</td>
+          <td>≥ 9</td>
+          <td>살생 실패 / 항복</td>
+          <td>무관</td>
+          <td style="color:var(--red-dim);">최하</td>
+          <td>★★☆☆☆</td>
+        </tr>
+        <tr>
+          <td>🟡 생존자</td>
+          <td>4 ~ 8</td>
+          <td>살생 성공</td>
+          <td>1~2명</td>
+          <td style="color:var(--yellow);">중간</td>
+          <td>★★★☆☆</td>
+        </tr>
+        <tr>
+          <td>🔵 화해</td>
+          <td>≤ 8</td>
+          <td>대화 성공 (R=7)</td>
+          <td>2명 이상</td>
+          <td style="color:var(--blue);">높음</td>
+          <td>★★★★☆</td>
+        </tr>
+        <tr>
+          <td>🟢 속죄</td>
+          <td>≤ 4</td>
+          <td>살려주고 떠남</td>
+          <td>이설 생존</td>
+          <td style="color:var(--green);">최고</td>
+          <td>★★★★★</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7. 덱 변화 -->
+  <section class="section" id="deck">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">분기별 덱 구성 변화</h2>
+    </div>
+
+    <table class="deck-table">
+      <thead>
+        <tr>
+          <th>상황</th>
+          <th>행동 덱 변화</th>
+          <th>상대 덱 / 메아리 덱 변화</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>민준 생존</td>
+          <td>+<span class="tag-deck">민준의 부탁</span> (MP0, 대화 주사위 +1, 1회용)</td>
+          <td>변화 없음</td>
+        </tr>
+        <tr>
+          <td>민준 사망</td>
+          <td>변화 없음</td>
+          <td>메아리 덱 +<span class="tag-karma">아이의 울음</span> (Echo: 턴 종료 시 MP −1)</td>
+        </tr>
+        <tr>
+          <td>이설 관계 붕괴</td>
+          <td>이설 이벤트 카드 전부 제거</td>
+          <td>변화 없음</td>
+        </tr>
+        <tr>
+          <td>정 노인 생존</td>
+          <td>+<span class="tag-deck">장로의 말씀</span> (MP1, Karma −1, 3회용)</td>
+          <td>변화 없음</td>
+        </tr>
+        <tr>
+          <td>정 노인 사망</td>
+          <td>변화 없음</td>
+          <td>메아리 덱 +<span class="tag-karma">빈 의자</span> (Echo: 살생 판정 시 주사위 −1)</td>
+        </tr>
+        <tr>
+          <td>둥지 포기</td>
+          <td>변화 없음</td>
+          <td>3막 상대 덱 → <span class="tag-karma">약탈자 강화판</span> 교체 (공격력A 전체 +1)</td>
+        </tr>
+        <tr>
+          <td>루카 생존</td>
+          <td>분기점 B 협상 선택지 해금</td>
+          <td>변화 없음</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 8. 다음 단계 -->
+  <section class="section" id="nextsteps">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">다음 단계 제안</h2>
+    </div>
+
+    <div class="nextsteps">
+      <div class="nextstep">
+        <div class="nextstep-num">01</div>
+        <h4>이벤트 카드 텍스트</h4>
+        <p>각 분기점의 대사 / 연출 문구를 전문으로 작성</p>
+      </div>
+      <div class="nextstep">
+        <div class="nextstep-num">02</div>
+        <h4>신규 카드 설계</h4>
+        <p>민준의 부탁, 장로의 말씀, 아이의 울음, 빈 의자 스펙 확정</p>
+      </div>
+      <div class="nextstep">
+        <div class="nextstep-num">03</div>
+        <h4>분기 플로우차트</h4>
+        <p>분기 구조를 한눈에 보이는 시각화 다이어그램 제작</p>
+      </div>
+      <div class="nextstep">
+        <div class="nextstep-num">04</div>
+        <h4>프로토타입 반영</h4>
+        <p>기존 HTML 프로토타입에 이벤트 시스템 코드 추가</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div>
+      <div class="footer-title">업보의 메아리</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">Echo of Karma — Story Design Document v1.0</div>
+    </div>
+    <div class="footer-meta">
+      닥터고블린컴퍼니<br>
+      Confidential · Internal Use Only
+    </div>
+  </footer>
+
+</main>
+</body>
+</html>

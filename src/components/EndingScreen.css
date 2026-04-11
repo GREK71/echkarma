@@ -1,0 +1,107 @@
+.ending-screen {
+  min-height: 100dvh;
+  background: #0a0a0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.ending-content {
+  text-align: center;
+  max-width: 500px;
+  animation: fadeIn 1.5s ease;
+}
+
+.ending-stars {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.3rem;
+}
+
+.star {
+  color: #333;
+}
+
+.star.filled {
+  color: #f7dc6f;
+  text-shadow: 0 0 10px rgba(247, 220, 111, 0.5);
+}
+
+.ending-title {
+  font-size: 2rem;
+  color: #e0e0e0;
+  margin: 0;
+  letter-spacing: 0.3rem;
+}
+
+.ending-subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0.5rem 0 1.5rem;
+  letter-spacing: 0.3rem;
+  text-transform: uppercase;
+}
+
+.ending-divider {
+  width: 60px;
+  height: 1px;
+  background: #333;
+  margin: 0 auto 1.5rem;
+}
+
+.ending-description {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #999;
+  margin: 0 0 2rem;
+}
+
+.ending-stats {
+  font-size: 0.8rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.ending-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-retry {
+  padding: 0.7rem 2rem;
+  background: transparent;
+  color: #4ecdc4;
+  border: 1px solid #4ecdc4;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.btn-retry:hover {
+  background: #4ecdc4;
+  color: #0a0a0f;
+}
+
+.btn-title {
+  padding: 0.7rem 2rem;
+  background: transparent;
+  color: #666;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.btn-title:hover {
+  border-color: #666;
+  color: #aaa;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
