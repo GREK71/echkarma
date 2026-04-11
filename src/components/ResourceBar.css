@@ -44,9 +44,8 @@
   transition: width 0.4s ease;
 }
 
-.resource-bar-fill.resource-hp { background: #e74c3c; }
-.resource-bar-fill.resource-food { background: #f39c12; }
-.resource-bar-fill.resource-trust { background: #3498db; }
+.resource-bar-fill.resource-hp { background: #c44030; }
+.resource-bar-fill.resource-food { background: #cf8e34; }
 
 .resource-value {
   font-size: 0.75rem;

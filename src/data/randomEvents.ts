@@ -31,7 +31,7 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '소리를 질러 사람들을 깨운다',
         karmaChange: 0,
-        resourceCost: { trust: 1 },
+        
         responseText: '정착지가 소란스러워졌지만, 괴한은 어둠 속으로 사라졌다. 사람들이 당신을 고맙게 바라본다.',
       },
       {
@@ -57,13 +57,13 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '범인을 색출한다',
         karmaChange: 1,
-        resourceCost: { trust: -1 },
+        
         responseText: '의심스러운 자를 몰아세웠지만, 확실한 증거는 없다. 분위기만 험악해졌다.',
       },
       {
         text: '남은 식량을 공평하게 나눈다',
         karmaChange: -1,
-        resourceCost: { food: -2, trust: 1 },
+        resourceCost: { food: -2 },
         responseText: '식량은 줄었지만, 당신의 공정함에 사람들이 안도한다.',
       },
       {
@@ -83,7 +83,7 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '데려와 치료한다',
         karmaChange: -2,
-        resourceCost: { food: -1, trust: 1 },
+        resourceCost: { food: -1 },
         responseText: '낯선 이가 의식을 되찾았다. "고맙습니다..." 약한 목소리로 속삭인다.',
       },
       {
@@ -120,7 +120,7 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '전부 정착지로 가져간다',
         karmaChange: -1,
-        resourceCost: { food: 2, hp: 1, trust: 1 },
+        resourceCost: { food: 2, hp: 1 },
         responseText: '무거운 짐을 지고 돌아왔다. 사람들의 표정이 밝아진다.',
       },
     ],
@@ -135,19 +135,19 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '중재에 나선다',
         karmaChange: -1,
-        resourceCost: { trust: 1 },
+        
         responseText: '양쪽을 달래며 배분을 조정했다. 불만은 남았지만, 큰 충돌은 피했다.',
       },
       {
         text: '내 일이 아니다 — 무시한다',
         karmaChange: 0,
-        resourceCost: { trust: -1 },
+        
         responseText: '다툼은 점점 커졌고, 결국 한 명이 정착지를 떠났다.',
       },
       {
         text: '강하게 질서를 잡는다',
         karmaChange: 1,
-        resourceCost: { trust: -1 },
+        
         responseText: '위압적인 태도에 다툼은 멈췄지만, 사람들의 눈에 두려움이 서렸다.',
       },
     ],
@@ -167,7 +167,7 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '이설에게 알린다',
         karmaChange: 0,
-        resourceCost: { trust: 1 },
+        
         responseText: '이설이 심각한 표정으로 말한다. "예전에도 비슷한 소리를 들은 적이 있어요."',
       },
       {
@@ -197,7 +197,7 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '손을 들어 대화를 시도한다',
         karmaChange: -1,
-        resourceCost: { trust: 1 },
+        
         responseText: '"동쪽은 가지 마라. 거기엔 아무것도 없어." 정찰병이 떠나며 흘린 말이 마음에 걸린다.',
       },
     ],
@@ -211,7 +211,7 @@ export const randomEvents: RandomEvent[] = [
       {
         text: '바리케이드를 사수한다',
         karmaChange: 0,
-        resourceCost: { hp: -2, trust: 1 },
+        resourceCost: { hp: -2 },
         responseText: '온몸이 모래에 쓸렸지만, 바리케이드는 버텼다. 사람들이 감사한 눈으로 바라본다.',
       },
       {

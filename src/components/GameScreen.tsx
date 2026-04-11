@@ -5,12 +5,13 @@ import { RESOURCE_CONFIG } from '../game/resources';
 import { KarmaGauge } from './KarmaGauge';
 import { NPCStatus } from './NPCStatus';
 import { ResourceBar } from './ResourceBar';
+import { SystemMessage } from './SystemMessage';
 import './GameScreen.css';
 
 export function GameScreen() {
   const {
-    currentSceneId, karma, resources, npcs,
-    makeChoice, makeRandomEventChoice, clearResourceEvent,
+    currentSceneId, karma, resources, npcs, discoveredClues,
+    makeChoice, makeRandomEventChoice,
     responseText, dismissResponse, activeRandomEvent,
   } = useGameStore();
   const [displayedText, setDisplayedText] = useState('');
@@ -21,7 +22,6 @@ export function GameScreen() {
 
   const scene = scenes.find((s) => s.id === currentSceneId);
 
-  // Determine what to display: response text, random event, or scene
   const isShowingResponse = responseText !== null && activeRandomEvent === null;
   const isShowingRandomEvent = activeRandomEvent !== null && responseText === null;
   const isShowingScene = !isShowingResponse && !isShowingRandomEvent;
@@ -38,16 +38,13 @@ export function GameScreen() {
     ? scene?.speaker
     : undefined;
 
-  // Scene/content change effect
+  const isFlashback = isShowingScene && scene?.isFlashback;
+
   useEffect(() => {
     setFadeState('in');
     setDisplayedText('');
     setIsTyping(true);
     setShowChoices(false);
-
-    if (isShowingScene) {
-      clearResourceEvent();
-    }
 
     const fadeTimer = setTimeout(() => setFadeState('visible'), 400);
 
@@ -105,6 +102,11 @@ export function GameScreen() {
       const { resource, min } = choice.requireResource;
       if (resources[resource] < min) return;
     }
+    if (choice.requireAffinity) {
+      const { npc, min } = choice.requireAffinity;
+      if (npcs[npc].affinity < min) return;
+    }
+    if (choice.requireClue && !discoveredClues.includes(choice.requireClue)) return;
 
     setFadeState('out');
     setShowChoices(false);
@@ -136,7 +138,7 @@ export function GameScreen() {
         <NPCStatus />
       </div>
 
-      <div className={`story-area scene-fade scene-fade-${fadeState}`} onClick={handleSkip}>
+      <div className={`story-area scene-fade scene-fade-${fadeState} ${isFlashback ? 'flashback' : ''}`} onClick={handleSkip}>
         {isBranchScene && (
           <div className="branch-indicator">
             <span className="branch-pulse" />
@@ -146,40 +148,36 @@ export function GameScreen() {
         {isShowingRandomEvent && (
           <div className="random-event-indicator">돌발 상황</div>
         )}
+        {isFlashback && (
+          <div className="flashback-indicator">기억의 파편</div>
+        )}
         {displaySpeaker && (
           <div className="speaker-name">{displaySpeaker}</div>
         )}
-        <p className="narration-text">
+        <p className={`narration-text ${isFlashback ? 'flashback-text' : ''}`}>
           {displayedText}
           {isTyping && <span className="cursor">|</span>}
         </p>
       </div>
 
       <div className={`choices-area ${showChoices ? 'visible' : ''}`}>
-        {/* Response text dismiss */}
         {isShowingResponse && (
           <button className="choice-btn" onClick={handleResponseDismiss}>
             <span className="choice-text">계속...</span>
           </button>
         )}
 
-        {/* Random event choices */}
         {isShowingRandomEvent && activeRandomEvent!.choices.map((choice, idx) => {
           const costHints: string[] = [];
           if (choice.resourceCost) {
             for (const [key, val] of Object.entries(choice.resourceCost)) {
               if (val === 0) continue;
               const cfg = RESOURCE_CONFIG[key as keyof typeof RESOURCE_CONFIG];
-              costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
+              if (cfg) costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
             }
           }
           return (
-            <button
-              key={idx}
-              className="choice-btn random-event-choice"
-              onClick={() => handleRandomEventChoice(idx)}
-              style={{ animationDelay: `${idx * 0.1}s` }}
-            >
+            <button key={idx} className="choice-btn random-event-choice" onClick={() => handleRandomEventChoice(idx)} style={{ animationDelay: `${idx * 0.1}s` }}>
               <span className="choice-text">{choice.text}</span>
               <span className="choice-hints">
                 {costHints.length > 0 && <span className="cost-hints">{costHints.join(' ')}</span>}
@@ -193,7 +191,6 @@ export function GameScreen() {
           );
         })}
 
-        {/* Normal scene choices */}
         {isShowingScene && scene.choices.map((choice, idx) => {
           let disabled = false;
           let lockReason = '';
@@ -209,24 +206,26 @@ export function GameScreen() {
             const { resource, min } = choice.requireResource;
             if (resources[resource] < min) { disabled = true; lockReason = `${RESOURCE_CONFIG[resource].label} ${min} 이상 필요`; }
           }
+          if (choice.requireAffinity) {
+            const { npc, min } = choice.requireAffinity;
+            if (npcs[npc].affinity < min) { disabled = true; lockReason = `${npcs[npc].name} 호감도 ${min} 이상 필요`; }
+          }
+          if (choice.requireClue && !discoveredClues.includes(choice.requireClue)) {
+            disabled = true; lockReason = '필요한 단서가 없다';
+          }
 
           const costHints: string[] = [];
           if (choice.resourceCost) {
             for (const [key, val] of Object.entries(choice.resourceCost)) {
               if (val === 0) continue;
               const cfg = RESOURCE_CONFIG[key as keyof typeof RESOURCE_CONFIG];
-              costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
+              if (cfg) costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
             }
           }
 
           return (
-            <button
-              key={idx}
-              className={`choice-btn ${disabled ? 'disabled' : ''} ${isBranchScene ? 'branch-choice' : ''}`}
-              onClick={() => handleChoice(idx)}
-              disabled={disabled}
-              style={{ animationDelay: `${idx * 0.1}s` }}
-            >
+            <button key={idx} className={`choice-btn ${disabled ? 'disabled' : ''} ${isBranchScene ? 'branch-choice' : ''}`}
+              onClick={() => handleChoice(idx)} disabled={disabled} style={{ animationDelay: `${idx * 0.1}s` }}>
               <span className="choice-text">{choice.text}</span>
               <span className="choice-hints">
                 {lockReason && <span className="lock-reason">{lockReason}</span>}
@@ -241,6 +240,8 @@ export function GameScreen() {
           );
         })}
       </div>
+
+      <SystemMessage />
     </div>
   );
 }

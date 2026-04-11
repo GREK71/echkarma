@@ -9,32 +9,50 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 1rem;
-  font-size: 0.75rem;
-  background: #1a1a2e;
-  border: 1px solid #333;
+  font-size: 0.7rem;
+  background: rgba(20, 18, 14, 0.8);
+  border: 1px solid rgba(207, 142, 52, 0.12);
 }
 
 .npc-chip.alive .npc-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #cf8e34;
+  flex-shrink: 0;
 }
 
 .npc-chip.dead .npc-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: #e74c3c;
+  background: #c44030;
+  flex-shrink: 0;
 }
 
 .npc-chip.dead .npc-name {
   text-decoration: line-through;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .npc-name {
-  color: #ccc;
+  color: #8a7a65;
+}
+
+.npc-affinity-bar {
+  width: 24px;
+  height: 3px;
+  background: #1a1510;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-left: 0.15rem;
+}
+
+.npc-affinity-fill {
+  height: 100%;
+  background: #cf8e34;
+  border-radius: 2px;
+  transition: width 0.4s ease;
 }

@@ -2,11 +2,10 @@ import { useGameStore } from '../store/gameStore';
 import { RESOURCE_CONFIG, type ResourceKey } from '../game/resources';
 import './ResourceBar.css';
 
-const RESOURCE_ORDER: ResourceKey[] = ['hp', 'food', 'trust'];
+const RESOURCE_ORDER: ResourceKey[] = ['hp', 'food'];
 
 export function ResourceBar() {
   const resources = useGameStore((s) => s.resources);
-  const lastEvent = useGameStore((s) => s.lastResourceEvent);
 
   return (
     <div className="resource-bar">
@@ -14,7 +13,7 @@ export function ResourceBar() {
         const cfg = RESOURCE_CONFIG[key];
         const value = resources[key];
         const pct = (value / cfg.max) * 100;
-        const isLow = key === 'hp' ? value <= 2 : key === 'food' ? value <= 1 : false;
+        const isLow = key === 'hp' ? value <= 2 : value <= 1;
 
         return (
           <div key={key} className={`resource-item ${isLow ? 'resource-low' : ''}`}>
@@ -32,11 +31,6 @@ export function ResourceBar() {
           </div>
         );
       })}
-      {lastEvent && (
-        <div className={`resource-event ${lastEvent.type}`}>
-          {lastEvent.message}
-        </div>
-      )}
     </div>
   );
 }

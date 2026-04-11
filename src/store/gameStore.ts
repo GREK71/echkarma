@@ -1,16 +1,17 @@
 import { create } from 'zustand';
 import { clampKarma } from '../game/karma';
-import { createInitialNPCs, type NPCId, type NPCState } from '../game/npc';
+import { createInitialNPCs, clampAffinity, type NPCId, type NPCState } from '../game/npc';
 import { createInitialResources, applyResourceChange, isFoodConsumptionTurn, consumeFood, clampResource, type Resources } from '../game/resources';
+import { CLUES } from '../game/clues';
 import { scenes, type Choice, type SceneConditionState } from '../data/scenes';
 import { determineEnding, type EndingId } from '../game/endings';
 import { rollRandomEvent, type RandomEvent, type RandomEventChoice } from '../data/randomEvents';
 
 export type GamePhase = 'title' | 'playing' | 'ending' | 'gallery';
 
-export interface ResourceEvent {
-  type: 'cost' | 'food_consumed' | 'starving';
-  message: string;
+export interface SystemMsg {
+  type: 'affinity' | 'clue' | 'resource' | 'warning' | 'memory';
+  text: string;
 }
 
 interface GameState {
@@ -24,12 +25,11 @@ interface GameState {
   endingId: EndingId | null;
   unlockedEndings: EndingId[];
   textHistory: string[];
-  lastResourceEvent: ResourceEvent | null;
-  // Response text shown after a choice, before next scene
   responseText: string | null;
-  // Random event state
   activeRandomEvent: RandomEvent | null;
   occurredEvents: Record<string, number>;
+  systemMessages: SystemMsg[];
+  discoveredClues: string[];
 
   startGame: () => void;
   setPhase: (phase: GamePhase) => void;
@@ -37,7 +37,7 @@ interface GameState {
   makeRandomEventChoice: (choice: RandomEventChoice) => void;
   dismissResponse: () => void;
   goToGallery: () => void;
-  clearResourceEvent: () => void;
+  shiftMessage: () => void;
 }
 
 function getStoredEndings(): EndingId[] {
@@ -74,18 +74,35 @@ function findNextScene(
   const nextTurn = currentTurn + 1;
   const candidates = scenes.filter((s) => s.turn === nextTurn);
   const state = buildConditionState(karma, npcs, branchResults, resources);
-
-  // First try scenes with matching conditions
   for (const scene of candidates) {
-    if (scene.condition && scene.condition(state)) {
-      return scene.id;
-    }
+    if (scene.condition && scene.condition(state)) return scene.id;
   }
-  // Then try scenes without conditions
   const noCondition = candidates.filter((s) => !s.condition);
   if (noCondition.length > 0) return noCondition[0].id;
-  // Fallback
   return candidates[0]?.id ?? null;
+}
+
+function applyAffinityChanges(
+  npcs: Record<NPCId, NPCState>,
+  changes: Partial<Record<NPCId, number>>,
+  messages: SystemMsg[]
+): Record<NPCId, NPCState> {
+  const result = { ...npcs };
+  for (const [npcId, delta] of Object.entries(changes) as [NPCId, number][]) {
+    if (!result[npcId]) continue;
+    const old = result[npcId].affinity;
+    const npc = { ...result[npcId] };
+    npc.affinity = clampAffinity(npc.affinity + delta);
+    result[npcId] = npc;
+    if (npc.affinity !== old) {
+      const arrow = delta > 0 ? '\u25B2' : '\u25BC';
+      messages.push({
+        type: 'affinity',
+        text: `${npc.name}의 호감도가 ${delta > 0 ? '상승' : '하락'}했다 ${arrow}`,
+      });
+    }
+  }
+  return result;
 }
 
 const TOTAL_ENDINGS = 6;
@@ -101,10 +118,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   endingId: null,
   unlockedEndings: getStoredEndings(),
   textHistory: [],
-  lastResourceEvent: null,
   responseText: null,
   activeRandomEvent: null,
   occurredEvents: {},
+  systemMessages: [],
+  discoveredClues: [],
 
   startGame: () =>
     set({
@@ -117,21 +135,19 @@ export const useGameStore = create<GameState>((set, get) => ({
       branchResults: {},
       endingId: null,
       textHistory: [],
-      lastResourceEvent: null,
       responseText: null,
       activeRandomEvent: null,
       occurredEvents: {},
+      systemMessages: [],
+      discoveredClues: [],
     }),
 
   setPhase: (phase) => set({ phase }),
-  clearResourceEvent: () => set({ lastResourceEvent: null }),
+  shiftMessage: () => set((s) => ({ systemMessages: s.systemMessages.slice(1) })),
 
   dismissResponse: () => {
     const state = get();
-    // After dismissing response text, proceed to next scene or random event
     set({ responseText: null });
-
-    // Check for random event
     const currentScene = scenes.find((s) => s.id === state.currentSceneId);
     const act = currentScene?.act ?? 1;
     const evt = rollRandomEvent(act, state.occurredEvents, state.turn);
@@ -142,6 +158,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   makeRandomEventChoice: (choice: RandomEventChoice) => {
     const state = get();
+    const msgs: SystemMsg[] = [];
     let newKarma = clampKarma(state.karma + choice.karmaChange);
     let newResources = { ...state.resources };
 
@@ -149,14 +166,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       newResources = applyResourceChange(newResources, choice.resourceCost);
     }
 
-    // Track event occurrence
     const newOccurred = { ...state.occurredEvents };
     if (state.activeRandomEvent) {
       const evtId = state.activeRandomEvent.id;
       newOccurred[evtId] = (newOccurred[evtId] ?? 0) + 1;
     }
 
-    // Check HP death
     if (newResources.hp <= 0) {
       const fallenId: EndingId = 'fallen';
       const updatedEndings: EndingId[] = state.unlockedEndings.includes(fallenId)
@@ -171,7 +186,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         phase: 'ending',
         activeRandomEvent: null,
         occurredEvents: newOccurred,
-        lastResourceEvent: null,
       });
       return;
     }
@@ -182,23 +196,32 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeRandomEvent: null,
       occurredEvents: newOccurred,
       responseText: choice.responseText,
+      systemMessages: [...state.systemMessages, ...msgs],
     });
   },
 
   makeChoice: (choice) => {
     const state = get();
+    const msgs: SystemMsg[] = [];
     let newKarma = clampKarma(state.karma + choice.karmaChange);
     let newResources = { ...state.resources };
-    const newNpcs = { ...state.npcs };
+    let newNpcs = { ...state.npcs };
     const newBranches = { ...state.branchResults };
+    const newClues = [...state.discoveredClues];
     const currentScene = scenes.find((s) => s.id === state.currentSceneId);
     const currentTurn = currentScene?.turn ?? state.turn;
-    let resourceEvent: ResourceEvent | null = null;
 
+    // Resource costs
     if (choice.resourceCost) {
       newResources = applyResourceChange(newResources, choice.resourceCost);
     }
 
+    // Affinity changes
+    if (choice.affinityChange) {
+      newNpcs = applyAffinityChanges(newNpcs, choice.affinityChange, msgs);
+    }
+
+    // NPC effects
     if (choice.npcEffect) {
       const npc = newNpcs[choice.npcEffect.id];
       newNpcs[choice.npcEffect.id] = { ...npc, alive: choice.npcEffect.alive };
@@ -208,19 +231,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       newNpcs[choice.revealNpc] = { ...npc, revealed: true };
     }
 
+    // Clue grants
+    if (choice.grantClue && !newClues.includes(choice.grantClue)) {
+      newClues.push(choice.grantClue);
+      const clue = CLUES[choice.grantClue];
+      if (clue) {
+        msgs.push({ type: 'clue', text: `'${clue.name}'을(를) 발견했다` });
+      }
+    }
+
+    // Branch results
     if (choice.branchResult) {
       newBranches[currentScene?.id ?? ''] = choice.branchResult;
     }
 
+    // Branch C karma restrictions
     if (currentScene?.id === 'branch_c') {
       if (choice.branchResult === 'c_dialogue' && state.karma > 8) {
         newBranches['branch_c'] = 'c_kill';
       }
       if (choice.branchResult === 'c_spare' && state.karma > 4) {
         newBranches['branch_c'] = 'c_dialogue';
-        if (state.karma > 8) {
-          newBranches['branch_c'] = 'c_kill';
-        }
+        if (state.karma > 8) newBranches['branch_c'] = 'c_kill';
       }
     }
 
@@ -228,17 +260,22 @@ export const useGameStore = create<GameState>((set, get) => ({
     const nextTurn = currentTurn + 1;
     if (newResources.food <= 0) {
       newResources = { ...newResources, hp: clampResource('hp', newResources.hp - 1) };
-      resourceEvent = { type: 'starving', message: '식량이 없다. 굶주림이 체력을 갉아먹는다.' };
+      msgs.push({ type: 'warning', text: '식량이 없다. 굶주림이 체력을 갉아먹는다.' });
     } else if (isFoodConsumptionTurn(nextTurn)) {
       newResources = consumeFood(newResources);
       if (newResources.food <= 0) {
-        resourceEvent = { type: 'starving', message: '마지막 식량이 떨어졌다. 다음 턴부터 굶주림이 시작된다.' };
+        msgs.push({ type: 'warning', text: '마지막 식량이 떨어졌다!' });
       } else {
-        resourceEvent = { type: 'food_consumed', message: '정착지의 식량이 소모되었다.' };
+        msgs.push({ type: 'resource', text: '정착지의 식량이 소모되었다' });
       }
     }
 
-    // Check HP death
+    // Flashback memory message
+    if (currentScene?.isFlashback) {
+      msgs.push({ type: 'memory', text: '기억의 파편이 되살아난다...' });
+    }
+
+    // HP death
     if (newResources.hp <= 0) {
       const fallenId: EndingId = 'fallen';
       const updatedEndings: EndingId[] = state.unlockedEndings.includes(fallenId)
@@ -246,21 +283,16 @@ export const useGameStore = create<GameState>((set, get) => ({
         : [...state.unlockedEndings, fallenId];
       saveEndings(updatedEndings);
       set({
-        karma: newKarma,
-        resources: newResources,
-        npcs: newNpcs,
-        branchResults: newBranches,
-        endingId: 'fallen',
-        unlockedEndings: updatedEndings,
-        phase: 'ending',
-        turn: currentTurn,
-        lastResourceEvent: null,
-        responseText: null,
+        karma: newKarma, resources: newResources, npcs: newNpcs,
+        branchResults: newBranches, discoveredClues: newClues,
+        endingId: 'fallen', unlockedEndings: updatedEndings,
+        phase: 'ending', turn: currentTurn, responseText: null,
+        systemMessages: [...state.systemMessages, ...msgs],
       });
       return;
     }
 
-    // Check game end
+    // Game end
     if (nextTurn > 20 || currentScene?.id === 'act3_turn20') {
       const branchCResult = newBranches['branch_c'] ?? 'c_kill';
       let endingBranchC: 'kill_success' | 'kill_fail' | 'dialogue_success' | 'dialogue_fail' | 'spare';
@@ -276,18 +308,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         ? state.unlockedEndings
         : [...state.unlockedEndings, ending];
       saveEndings(updatedEndings);
-
       set({
-        karma: newKarma,
-        resources: newResources,
-        npcs: newNpcs,
-        branchResults: newBranches,
-        endingId: ending,
-        unlockedEndings: updatedEndings,
-        phase: 'ending',
-        turn: currentTurn,
-        lastResourceEvent: null,
-        responseText: null,
+        karma: newKarma, resources: newResources, npcs: newNpcs,
+        branchResults: newBranches, discoveredClues: newClues,
+        endingId: ending, unlockedEndings: updatedEndings,
+        phase: 'ending', turn: currentTurn, responseText: null,
+        systemMessages: [...state.systemMessages, ...msgs],
       });
       return;
     }
@@ -299,36 +325,25 @@ export const useGameStore = create<GameState>((set, get) => ({
       newHistory.push(`> ${choice.text}`);
     }
 
-    // If choice has responseText, show it before proceeding
     if (choice.responseText) {
       set({
-        karma: newKarma,
-        resources: newResources,
-        npcs: newNpcs,
-        branchResults: newBranches,
-        turn: nextTurn,
-        currentSceneId: nextSceneId ?? state.currentSceneId,
-        textHistory: newHistory,
-        lastResourceEvent: resourceEvent,
-        responseText: choice.responseText,
+        karma: newKarma, resources: newResources, npcs: newNpcs,
+        branchResults: newBranches, discoveredClues: newClues,
+        turn: nextTurn, currentSceneId: nextSceneId ?? state.currentSceneId,
+        textHistory: newHistory, responseText: choice.responseText,
         activeRandomEvent: null,
+        systemMessages: [...state.systemMessages, ...msgs],
       });
     } else {
-      // No response text — check for random event directly
       const act = currentScene?.act ?? 1;
       const evt = rollRandomEvent(act, state.occurredEvents, nextTurn);
-
       set({
-        karma: newKarma,
-        resources: newResources,
-        npcs: newNpcs,
-        branchResults: newBranches,
-        turn: nextTurn,
-        currentSceneId: nextSceneId ?? state.currentSceneId,
-        textHistory: newHistory,
-        lastResourceEvent: resourceEvent,
-        responseText: null,
+        karma: newKarma, resources: newResources, npcs: newNpcs,
+        branchResults: newBranches, discoveredClues: newClues,
+        turn: nextTurn, currentSceneId: nextSceneId ?? state.currentSceneId,
+        textHistory: newHistory, responseText: null,
         activeRandomEvent: evt,
+        systemMessages: [...state.systemMessages, ...msgs],
       });
     }
   },
