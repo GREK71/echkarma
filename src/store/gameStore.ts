@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { clampKarma } from '../game/karma';
 import { createInitialNPCs, type NPCId, type NPCState } from '../game/npc';
-import { createInitialResources, applyResourceChange, isFoodConsumptionTurn, consumeFood, type Resources } from '../game/resources';
+import { createInitialResources, applyResourceChange, isFoodConsumptionTurn, consumeFood, clampResource, type Resources } from '../game/resources';
 import { scenes, type Choice } from '../data/scenes';
 import { determineEnding, type EndingId } from '../game/endings';
 
@@ -141,13 +141,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    // Food consumption on specific turns
+    // Food system
     const nextTurn = currentTurn + 1;
-    if (isFoodConsumptionTurn(nextTurn)) {
-      const before = newResources.hp;
+    if (newResources.food <= 0) {
+      // 식량 0: 매 턴 HP -1
+      newResources = { ...newResources, hp: clampResource('hp', newResources.hp - 1) };
+      resourceEvent = { type: 'starving', message: '식량이 없다. 굶주림이 체력을 갉아먹는다.' };
+    } else if (isFoodConsumptionTurn(nextTurn)) {
+      // 3턴마다 식량 1 소모
       newResources = consumeFood(newResources);
-      if (newResources.food === 0 && newResources.hp < before) {
-        resourceEvent = { type: 'starving', message: '식량이 바닥났다. 굶주림이 체력을 갉아먹는다.' };
+      if (newResources.food <= 0) {
+        resourceEvent = { type: 'starving', message: '마지막 식량이 떨어졌다. 다음 턴부터 굶주림이 시작된다.' };
       } else {
         resourceEvent = { type: 'food_consumed', message: '정착지의 식량이 소모되었다.' };
       }
