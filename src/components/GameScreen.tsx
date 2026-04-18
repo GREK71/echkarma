@@ -223,11 +223,25 @@ export function GameScreen() {
             }
           }
 
+          // 확률 뱃지 (successChance 있을 때만)
+          const probability = choice.successChance;
+          let probabilityClass = '';
+          if (probability !== undefined) {
+            if (probability >= 0.7) probabilityClass = 'high';
+            else if (probability >= 0.45) probabilityClass = 'mid';
+            else probabilityClass = 'low';
+          }
+
           return (
             <button key={idx} className={`choice-btn ${disabled ? 'disabled' : ''} ${isBranchScene ? 'branch-choice' : ''}`}
               onClick={() => handleChoice(idx)} disabled={disabled} style={{ animationDelay: `${idx * 0.1}s` }}>
               <span className="choice-text">{choice.text}</span>
               <span className="choice-hints">
+                {!disabled && probability !== undefined && (
+                  <span className={`probability-hint ${probabilityClass}`}>
+                    {Math.round(probability * 100)}%
+                  </span>
+                )}
                 {lockReason && <span className="lock-reason">{lockReason}</span>}
                 {!disabled && costHints.length > 0 && <span className="cost-hints">{costHints.join(' ')}</span>}
                 {!disabled && choice.karmaChange !== 0 && (

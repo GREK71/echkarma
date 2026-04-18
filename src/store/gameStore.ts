@@ -3,11 +3,11 @@ import { clampKarma } from '../game/karma';
 import { createInitialNPCs, clampAffinity, type NPCId, type NPCState } from '../game/npc';
 import { createInitialResources, applyResourceChange, isFoodConsumptionTurn, consumeFood, clampResource, type Resources } from '../game/resources';
 import { CLUES } from '../game/clues';
-import { scenes, type Choice, type SceneConditionState } from '../data/scenes';
+import { scenes, type Choice, type ChoiceOutcome, type SceneConditionState } from '../data/scenes';
 import { determineEnding, type EndingId } from '../game/endings';
 import { rollRandomEvent, type RandomEvent, type RandomEventChoice } from '../data/randomEvents';
 
-export type GamePhase = 'title' | 'playing' | 'ending' | 'gallery';
+export type GamePhase = 'title' | 'prologue' | 'playing' | 'ending' | 'gallery';
 
 export interface SystemMsg {
   type: 'affinity' | 'clue' | 'resource' | 'warning' | 'memory';
@@ -32,6 +32,7 @@ interface GameState {
   discoveredClues: string[];
 
   startGame: () => void;
+  startPrologue: () => void;
   setPhase: (phase: GamePhase) => void;
   makeChoice: (choice: Choice) => void;
   makeRandomEventChoice: (choice: RandomEventChoice) => void;
@@ -105,6 +106,32 @@ function applyAffinityChanges(
   return result;
 }
 
+/**
+ * 확률 선택지 — successChance가 있으면 성공/실패 판정하여 효과를 merge.
+ * 반환: { merged, wasSuccess } — merged는 Choice의 필드를 override 형태로 반영한 값
+ */
+function resolveOutcome(choice: Choice): { merged: Choice; wasSuccess: boolean | null } {
+  if (choice.successChance === undefined) {
+    return { merged: choice, wasSuccess: null };
+  }
+  const success = Math.random() < choice.successChance;
+  const outcome: ChoiceOutcome | undefined = success ? choice.onSuccess : choice.onFailure;
+  if (!outcome) return { merged: choice, wasSuccess: success };
+
+  // outcome 필드로 override
+  const merged: Choice = {
+    ...choice,
+    karmaChange: outcome.karmaChange ?? choice.karmaChange,
+    resourceCost: outcome.resourceCost ?? choice.resourceCost,
+    affinityChange: outcome.affinityChange ?? choice.affinityChange,
+    npcEffect: outcome.npcEffect ?? choice.npcEffect,
+    grantClue: outcome.grantClue ?? choice.grantClue,
+    responseText: outcome.responseText ?? choice.responseText,
+    branchResult: outcome.branchResult ?? choice.branchResult,
+  };
+  return { merged, wasSuccess: success };
+}
+
 const TOTAL_ENDINGS = 6;
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -142,6 +169,24 @@ export const useGameStore = create<GameState>((set, get) => ({
       discoveredClues: [],
     }),
 
+  startPrologue: () =>
+    set({
+      phase: 'prologue',
+      turn: 1,
+      karma: 5,
+      resources: createInitialResources(),
+      npcs: createInitialNPCs(),
+      currentSceneId: 'act1_turn1',
+      branchResults: {},
+      endingId: null,
+      textHistory: [],
+      responseText: null,
+      activeRandomEvent: null,
+      occurredEvents: {},
+      systemMessages: [],
+      discoveredClues: [],
+    }),
+
   setPhase: (phase) => set({ phase }),
   shiftMessage: () => set((s) => ({ systemMessages: s.systemMessages.slice(1) })),
 
@@ -150,7 +195,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ responseText: null });
     const currentScene = scenes.find((s) => s.id === state.currentSceneId);
     const act = currentScene?.act ?? 1;
-    const evt = rollRandomEvent(act, state.occurredEvents, state.turn);
+    const evt = rollRandomEvent(act, state.occurredEvents, state.turn, {
+      karma: state.karma,
+      hp: state.resources.hp,
+    });
     if (evt) {
       set({ activeRandomEvent: evt });
     }
@@ -161,9 +209,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     const msgs: SystemMsg[] = [];
     let newKarma = clampKarma(state.karma + choice.karmaChange);
     let newResources = { ...state.resources };
+    let newNpcs = { ...state.npcs };
 
     if (choice.resourceCost) {
       newResources = applyResourceChange(newResources, choice.resourceCost);
+    }
+    if (choice.affinityChange) {
+      newNpcs = applyAffinityChanges(newNpcs, choice.affinityChange, msgs);
     }
 
     const newOccurred = { ...state.occurredEvents };
@@ -181,6 +233,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({
         karma: newKarma,
         resources: newResources,
+        npcs: newNpcs,
         endingId: 'fallen',
         unlockedEndings: updatedEndings,
         phase: 'ending',
@@ -193,6 +246,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       karma: newKarma,
       resources: newResources,
+      npcs: newNpcs,
       activeRandomEvent: null,
       occurredEvents: newOccurred,
       responseText: choice.responseText,
@@ -200,9 +254,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  makeChoice: (choice) => {
+  makeChoice: (originalChoice) => {
     const state = get();
     const msgs: SystemMsg[] = [];
+
+    // 확률 판정 — successChance 있으면 성공/실패 효과로 병합
+    const { merged: choice, wasSuccess } = resolveOutcome(originalChoice);
+    if (wasSuccess === true) {
+      msgs.push({ type: 'resource', text: '시도는 성공했다' });
+    } else if (wasSuccess === false) {
+      msgs.push({ type: 'warning', text: '시도는 실패했다' });
+    }
+
     let newKarma = clampKarma(state.karma + choice.karmaChange);
     let newResources = { ...state.resources };
     let newNpcs = { ...state.npcs };
@@ -211,17 +274,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const currentScene = scenes.find((s) => s.id === state.currentSceneId);
     const currentTurn = currentScene?.turn ?? state.turn;
 
-    // Resource costs
     if (choice.resourceCost) {
       newResources = applyResourceChange(newResources, choice.resourceCost);
     }
-
-    // Affinity changes
     if (choice.affinityChange) {
       newNpcs = applyAffinityChanges(newNpcs, choice.affinityChange, msgs);
     }
-
-    // NPC effects
     if (choice.npcEffect) {
       const npc = newNpcs[choice.npcEffect.id];
       newNpcs[choice.npcEffect.id] = { ...npc, alive: choice.npcEffect.alive };
@@ -230,8 +288,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       const npc = newNpcs[choice.revealNpc];
       newNpcs[choice.revealNpc] = { ...npc, revealed: true };
     }
-
-    // Clue grants
     if (choice.grantClue && !newClues.includes(choice.grantClue)) {
       newClues.push(choice.grantClue);
       const clue = CLUES[choice.grantClue];
@@ -239,8 +295,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         msgs.push({ type: 'clue', text: `'${clue.name}'을(를) 발견했다` });
       }
     }
-
-    // Branch results
     if (choice.branchResult) {
       newBranches[currentScene?.id ?? ''] = choice.branchResult;
     }
@@ -270,7 +324,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    // Flashback memory message
     if (currentScene?.isFlashback) {
       msgs.push({ type: 'memory', text: '기억의 파편이 되살아난다...' });
     }
@@ -336,7 +389,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       });
     } else {
       const act = currentScene?.act ?? 1;
-      const evt = rollRandomEvent(act, state.occurredEvents, nextTurn);
+      const evt = rollRandomEvent(act, state.occurredEvents, nextTurn, {
+        karma: newKarma,
+        hp: newResources.hp,
+      });
       set({
         karma: newKarma, resources: newResources, npcs: newNpcs,
         branchResults: newBranches, discoveredClues: newClues,

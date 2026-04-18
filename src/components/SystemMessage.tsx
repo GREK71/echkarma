@@ -9,7 +9,7 @@ export function SystemMessage() {
   const [display, setDisplay] = useState<{ type: string; text: string } | null>(null);
   const [phase, setPhase] = useState<'hidden' | 'showing' | 'visible' | 'hiding'>('hidden');
   const busyRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const clearTimers = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);

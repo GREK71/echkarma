@@ -269,6 +269,46 @@
 .karma-hint.good { color: #6dab63; }
 .karma-hint.bad { color: #c44030; }
 
+/* === 확률 뱃지 === */
+.probability-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: bold;
+  letter-spacing: 0.04rem;
+  border: 1px solid;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.probability-hint::before {
+  content: '\25C9  ';
+  font-size: 0.55rem;
+  margin-right: 0.12rem;
+  opacity: 0.7;
+}
+
+.probability-hint.high {
+  color: #6dab63;
+  border-color: rgba(109, 171, 99, 0.4);
+  background: rgba(109, 171, 99, 0.08);
+}
+
+.probability-hint.mid {
+  color: #cf8e34;
+  border-color: rgba(207, 142, 52, 0.4);
+  background: rgba(207, 142, 52, 0.08);
+}
+
+.probability-hint.low {
+  color: #c44030;
+  border-color: rgba(196, 64, 48, 0.4);
+  background: rgba(196, 64, 48, 0.08);
+}
+
 /* === Random event === */
 .random-event-indicator {
   display: inline-flex;

@@ -5,6 +5,8 @@ export interface RandomEventChoice {
   text: string;
   karmaChange: number;
   resourceCost?: Partial<Record<ResourceKey, number>>;
+  affinityChange?: Partial<Record<NPCId, number>>;
+  requireAffinity?: { npc: NPCId; min: number };
   responseText: string;
 }
 
@@ -21,6 +23,10 @@ export interface RandomEvent {
   maxOccurrences?: number;
   /** NPC 생존 조건 */
   requireNpc?: { id: NPCId; alive: boolean };
+  /** 발동을 위한 카르마 범위 */
+  requireKarma?: { min?: number; max?: number };
+  /** 발동 가능 턴 범위 */
+  turnRange?: { min?: number; max?: number };
 }
 
 export const randomEvents: RandomEvent[] = [
@@ -225,31 +231,139 @@ export const randomEvents: RandomEvent[] = [
     acts: [2, 3],
     maxOccurrences: 1,
   },
+  // === 카르마 임계치 트리거 이벤트 ===
+  {
+    id: 'evt_evil_echo',
+    narration: '밤바람 속에서 당신이 해친 자들의 얼굴이 스친다. 손끝이 떨리고, 귓가엔 누군가의 마지막 숨소리가 들린다.',
+    choices: [
+      {
+        text: '억누른다 — 이건 환각일 뿐이다',
+        karmaChange: 1,
+        resourceCost: { hp: 1 },
+        responseText: '호흡을 가다듬었다. 환각은 서서히 사라졌지만, 마음 한구석에 단단한 벽이 세워졌다.',
+      },
+      {
+        text: '받아들인다 — 나는 많은 것을 빼앗았다',
+        karmaChange: -1,
+        resourceCost: { hp: -1 },
+        responseText: '무릎을 꿇었다. 이름 모를 얼굴들에게 사죄했다. 가슴이 무너지는 것 같았지만, 조금은 가벼워졌다.',
+      },
+      {
+        text: '이설에게 털어놓는다',
+        karmaChange: -1,
+        affinityChange: { issel: 2 },
+        requireAffinity: { npc: 'issel', min: 5 },
+        responseText: '이설은 아무 말도 하지 않고 당신의 손을 잡았다. 그 침묵이 어떤 말보다 큰 위로가 되었다.',
+      },
+    ],
+    probability: 0.5,
+    acts: [2, 3],
+    maxOccurrences: 2,
+    requireKarma: { min: 8 },
+    turnRange: { min: 10, max: 17 },
+  },
+  {
+    id: 'evt_redemption',
+    narration: '어린 아이가 당신 앞에 쓰러진 약탈자를 가리킨다. "저 사람도... 원래는 나쁜 사람이 아니었을 거예요, 아저씨."',
+    speaker: '민준',
+    choices: [
+      {
+        text: '약탈자를 매장해준다',
+        karmaChange: -1,
+        resourceCost: { food: -1 },
+        affinityChange: { minju: 1 },
+        responseText: '민준이 당신 옆에서 함께 흙을 덮었다. 이름도 모르는 자를 위한, 작은 무덤 하나가 생겼다.',
+      },
+      {
+        text: '"나쁜 사람이 아닌 자가 얼마나 될까." 지나간다',
+        karmaChange: 1,
+        affinityChange: { minju: -1 },
+        responseText: '민준은 당신을 한참 바라봤다. 그 눈빛이 오래 남았다.',
+      },
+      {
+        text: '"세상은 네가 생각하는 것보다 잔인하다." 진실을 말한다',
+        karmaChange: -2,
+        affinityChange: { minju: -1 },
+        responseText: '민준의 눈이 떨렸다. 그는 고개를 숙였다. "알아요... 그래도, 누군가는 기억해줘야 하잖아요."',
+      },
+    ],
+    probability: 0.5,
+    acts: [2, 3],
+    maxOccurrences: 1,
+    requireKarma: { max: 4 },
+    turnRange: { min: 10, max: 17 },
+    requireNpc: { id: 'minju', alive: true },
+  },
+  {
+    id: 'evt_hunter',
+    narration: '정찰 중, 누군가 당신을 지켜보고 있다는 감각. 당신의 평판은 이미 이 일대에 퍼진 것이다. 약탈자든, 생존자든 — 당신을 쫓는 자들이 생긴 것이다.',
+    choices: [
+      {
+        text: '숨어서 지나가길 기다린다',
+        karmaChange: 0,
+        responseText: '숨을 죽이고 한참을 기다렸다. 발소리는 멀어졌다. 오늘은 피했다.',
+      },
+      {
+        text: '대치한다 — 두려움을 보이지 않는다',
+        karmaChange: 1,
+        resourceCost: { hp: -2 },
+        responseText: '짧은 교전 후 추적자는 물러섰다. 당신은 피를 묻힌 채 돌아왔다.',
+      },
+      {
+        text: '다른 길로 돌아간다',
+        karmaChange: 0,
+        resourceCost: { food: -1 },
+        responseText: '먼 길을 돌아왔다. 시간과 식량을 대가로, 당신은 살아있다.',
+      },
+    ],
+    probability: 0.5,
+    acts: [2, 3],
+    maxOccurrences: 2,
+    requireKarma: { min: 9 },
+    turnRange: { min: 13, max: 17 },
+  },
 ];
 
 const DEFAULT_PROBABILITY = 0.35;
 
+export interface RollContext {
+  karma: number;
+  hp: number;
+}
+
 export function rollRandomEvent(
   act: 1 | 2 | 3,
   occurredEvents: Record<string, number>,
-  turn: number
+  turn: number,
+  ctx?: RollContext
 ): RandomEvent | null {
   // 분기점 턴(7,14,19)과 첫 2턴, 마지막 2턴에서는 발동 안 함
   if (turn <= 2 || turn >= 19 || turn === 7 || turn === 14) return null;
+
+  const karma = ctx?.karma ?? 5;
+  const hp = ctx?.hp ?? 5;
 
   const eligible = randomEvents.filter((evt) => {
     if (evt.acts && !evt.acts.includes(act)) return false;
     const count = occurredEvents[evt.id] ?? 0;
     if (evt.maxOccurrences && count >= evt.maxOccurrences) return false;
+    if (evt.requireKarma) {
+      if (evt.requireKarma.min !== undefined && karma < evt.requireKarma.min) return false;
+      if (evt.requireKarma.max !== undefined && karma > evt.requireKarma.max) return false;
+    }
+    if (evt.turnRange) {
+      if (evt.turnRange.min !== undefined && turn < evt.turnRange.min) return false;
+      if (evt.turnRange.max !== undefined && turn > evt.turnRange.max) return false;
+    }
     return true;
   });
 
   if (eligible.length === 0) return null;
 
-  // 전체 확률 체크 (이벤트 발동 여부)
-  if (Math.random() > DEFAULT_PROBABILITY) return null;
+  // HP 2 이하이면 전체 확률을 절반으로 (플레이어 보호)
+  const globalProb = hp <= 2 ? DEFAULT_PROBABILITY * 0.5 : DEFAULT_PROBABILITY;
+  if (Math.random() > globalProb) return null;
 
-  // 적격 이벤트 중 하나 랜덤 선택 (개별 확률 가중치)
   const weighted = eligible.map((evt) => ({
     evt,
     weight: evt.probability ?? DEFAULT_PROBABILITY,

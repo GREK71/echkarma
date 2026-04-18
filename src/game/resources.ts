@@ -36,7 +36,8 @@ export function applyResourceChange(
 }
 
 export function isFoodConsumptionTurn(turn: number): boolean {
-  return turn >= 3 && turn % 3 === 0 && turn <= 18;
+  // 4, 8, 12, 16턴에 식량 1 소모 (총 4회)
+  return turn >= 4 && turn % 4 === 0 && turn <= 18;
 }
 
 export function consumeFood(resources: Resources): Resources {

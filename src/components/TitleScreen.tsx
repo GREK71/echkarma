@@ -2,7 +2,7 @@ import { useGameStore, TOTAL_ENDINGS } from '../store/gameStore';
 import './TitleScreen.css';
 
 export function TitleScreen() {
-  const startGame = useGameStore((s) => s.startGame);
+  const startPrologue = useGameStore((s) => s.startPrologue);
   const goToGallery = useGameStore((s) => s.goToGallery);
   const unlockedEndings = useGameStore((s) => s.unlockedEndings);
 
@@ -15,7 +15,7 @@ export function TitleScreen() {
         <p className="title-sub">Echo of Karma</p>
       </div>
       <div className="title-buttons">
-        <button className="btn-start" onClick={startGame}>
+        <button className="btn-start" onClick={startPrologue}>
           새 게임
         </button>
         <button className="btn-gallery" onClick={goToGallery}>

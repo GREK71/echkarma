@@ -1,6 +1,20 @@
 import type { NPCId } from '../game/npc';
 import type { ResourceKey } from '../game/resources';
 
+/**
+ * 확률 선택지 결과. successChance가 지정된 Choice는
+ * Math.random() < successChance ? onSuccess : onFailure 로 분기.
+ */
+export interface ChoiceOutcome {
+  karmaChange?: number;
+  resourceCost?: Partial<Record<ResourceKey, number>>;
+  affinityChange?: Partial<Record<NPCId, number>>;
+  npcEffect?: { id: NPCId; alive: boolean };
+  grantClue?: string;
+  responseText?: string;
+  branchResult?: string;
+}
+
 export interface Choice {
   text: string;
   karmaChange: number;
@@ -15,6 +29,10 @@ export interface Choice {
   requireAffinity?: { npc: NPCId; min: number };
   grantClue?: string;
   requireClue?: string;
+  /** 0~1 사이 성공 확률. 지정되면 onSuccess/onFailure로 분기. */
+  successChance?: number;
+  onSuccess?: ChoiceOutcome;
+  onFailure?: ChoiceOutcome;
 }
 
 export interface SceneConditionState {
@@ -22,6 +40,24 @@ export interface SceneConditionState {
   npcs: Record<string, { alive: boolean; revealed: boolean }>;
   branchResults: Record<string, string>;
   resources: { hp: number; food: number };
+}
+
+/**
+ * 향후 터치 추리 확장 지점.
+ * 'dialogue'(기본) — 현재 GameScreen 렌더링
+ * 'investigation' — 향후 InvestigationScreen에서 터치/포인트&클릭 식으로 렌더링
+ */
+export type SceneInteractiveType = 'dialogue' | 'investigation';
+
+/** 추리/탐색 씬에서 터치 대상 (향후 사용) */
+export interface Interactable {
+  id: string;
+  label: string;
+  x: number; // 0~100 (%)
+  y: number;
+  width?: number;
+  height?: number;
+  onTap?: { grantClue?: string; narration?: string };
 }
 
 export interface Scene {
@@ -34,6 +70,10 @@ export interface Scene {
   isBranch?: boolean;
   isFlashback?: boolean;
   condition?: (state: SceneConditionState) => boolean;
+  /** 기본 'dialogue'. 'investigation'은 향후 확장 */
+  interactiveType?: SceneInteractiveType;
+  /** 추리 씬의 터치 대상 (향후) */
+  interactables?: Interactable[];
 }
 
 export const scenes: Scene[] = [
@@ -107,7 +147,21 @@ export const scenes: Scene[] = [
     choices: [
       { text: '"대화가 통할 리 없어. 준비해야 해."', karmaChange: 1, affinityChange: { issel: -1 }, responseText: '이설이 입술을 깨문다. "...그럴지도 모르죠." 그녀의 눈에 불안이 깊어진다.' },
       { text: '"정 노인의 판단을 믿어보자."', karmaChange: -1, affinityChange: { issel: 1 }, responseText: '이설이 고개를 끄덕이지만, 완전히 안심한 표정은 아니다.' },
-      { text: '"혼자 정찰을 나가보겠다."', karmaChange: 0, resourceCost: { hp: -1 }, responseText: '어둠 속을 헤맸다. 약탈자 캠프의 위치를 대략 파악했지만, 돌아오는 길에 다리를 다쳤다.' },
+      {
+        text: '"혼자 정찰을 나가보겠다."',
+        karmaChange: 0,
+        successChance: 0.7,
+        onSuccess: {
+          karmaChange: 0,
+          resourceCost: { hp: -1 },
+          responseText: '어둠 속을 조심스럽게 움직였다. 약탈자 캠프의 위치를 파악했다. 팔에 작은 찰과상이 남았다.',
+        },
+        onFailure: {
+          karmaChange: 0,
+          resourceCost: { hp: -2 },
+          responseText: '발을 헛디뎌 돌무더기에서 구르고 말았다. 정보는커녕, 상처만 입고 돌아왔다.',
+        },
+      },
     ],
   },
   {
@@ -117,7 +171,22 @@ export const scenes: Scene[] = [
     narration: '다음 날 아침, 정착지 외곽에서 약탈자 한 명이 발견된다. 부상을 입고 쓰러져 있다. 사람들이 웅성거린다. "저자를 어떻게 할 것인가?"',
     choices: [
       { text: '치료해준다', karmaChange: -2, resourceCost: { food: -1 }, affinityChange: { issel: 1 }, responseText: '약탈자가 의식을 되찾았다. "왜... 왜 살려준 거야?" 그의 눈에 혼란이 서린다.' },
-      { text: '묶어서 심문한다', karmaChange: 1, affinityChange: { issel: -1 }, responseText: '"정보를 내놓으면 살려주겠다." 약탈자가 겁에 질린 눈으로 고개를 끄덕인다.' },
+      {
+        text: '묶어서 심문한다',
+        karmaChange: 1,
+        successChance: 0.6,
+        onSuccess: {
+          karmaChange: 1,
+          affinityChange: { issel: -1 },
+          grantClue: 'raider_symbol',
+          responseText: '"정보를 내놓으면 살려주겠다." 약탈자가 떨리는 목소리로 캠프의 위치와 기호를 불었다.',
+        },
+        onFailure: {
+          karmaChange: 1,
+          affinityChange: { issel: -2 },
+          responseText: '약탈자는 끝내 입을 굳게 다물었다. 당신의 폭력만이 공허하게 메아리쳤다.',
+        },
+      },
       { text: '정착지 밖으로 내쫓는다', karmaChange: 0, responseText: '약탈자가 절뚝이며 사라진다. 그가 돌아가 동료에게 뭐라고 전할지... 알 수 없다.' },
       { text: '위협을 제거한다', karmaChange: 2, affinityChange: { issel: -2 }, responseText: '일은 끝났다. 하지만 사람들의 시선이 예전 같지 않다. 민준이 고개를 돌린다.' },
     ],
@@ -132,8 +201,50 @@ export const scenes: Scene[] = [
     narration: '약탈자 무리가 정착지 앞에 나타났다. 그들의 손에는 민준이 붙잡혀 있다. "물자를 내놓으면 아이를 돌려보내지. 아니면... 글쎄, 결과는 뻔하겠지?"',
     choices: [
       { text: '물자를 넘긴다 (민준 생존)', karmaChange: -1, resourceCost: { food: -3 }, affinityChange: { issel: 1 }, npcEffect: { id: 'minju', alive: true }, branchResult: 'a_supplies' },
-      { text: '기습 공격을 감행한다 (민준 위험)', karmaChange: 2, resourceCost: { hp: -2 }, affinityChange: { issel: -2 }, npcEffect: { id: 'minju', alive: false }, branchResult: 'a_attack' },
-      { text: '대화로 시간을 끈다', karmaChange: 0, affinityChange: { issel: 1 }, npcEffect: { id: 'minju', alive: true }, branchResult: 'a_negotiate', requireAffinity: { npc: 'issel', min: 3 } },
+      {
+        text: '기습 공격을 감행한다 (민준 위험)',
+        karmaChange: 2,
+        successChance: 0.4,
+        branchResult: 'a_attack',
+        onSuccess: {
+          karmaChange: 2,
+          resourceCost: { hp: -1 },
+          affinityChange: { issel: -2, minju: -1 },
+          npcEffect: { id: 'minju', alive: true },
+          responseText: '찰나에 칼이 번뜩였다. 약탈자 둘을 쓰러뜨리고 민준을 낚아챘다. 그러나 사람들의 눈빛은 얼어있었다.',
+          branchResult: 'a_attack',
+        },
+        onFailure: {
+          karmaChange: 2,
+          resourceCost: { hp: -3 },
+          affinityChange: { issel: -3, minju: -3 },
+          npcEffect: { id: 'minju', alive: false },
+          responseText: '기습은 실패했다. 민준이 쓰러지는 모습이 눈앞에 새겨졌다. 당신은 피를 토하며 물러섰다.',
+          branchResult: 'a_attack',
+        },
+      },
+      {
+        text: '대화로 시간을 끈다',
+        karmaChange: 0,
+        successChance: 0.65,
+        branchResult: 'a_negotiate',
+        requireAffinity: { npc: 'issel', min: 3 },
+        onSuccess: {
+          karmaChange: -1,
+          affinityChange: { issel: 2, minju: 1 },
+          npcEffect: { id: 'minju', alive: true },
+          responseText: '당신의 차분한 말에 약탈자들이 주춤했다. 그 사이 이설이 뒤에서 움직였고, 민준은 무사히 빠져나왔다.',
+          branchResult: 'a_negotiate',
+        },
+        onFailure: {
+          karmaChange: 0,
+          resourceCost: { hp: -1, food: -2 },
+          affinityChange: { issel: 1 },
+          npcEffect: { id: 'minju', alive: true },
+          responseText: '대화는 길어졌지만 결국 물자 일부를 넘겨야 했다. 민준은 돌아왔고, 창고는 가벼워졌다.',
+          branchResult: 'a_negotiate',
+        },
+      },
       { text: '민준 대신 자신을 인질로 제안한다', karmaChange: -2, resourceCost: { hp: -2 }, affinityChange: { issel: 2 }, npcEffect: { id: 'minju', alive: true }, branchResult: 'a_sacrifice' },
     ],
   },
@@ -157,7 +268,22 @@ export const scenes: Scene[] = [
     turn: 9,
     narration: '정착지 밖 탐색 중 이상한 신호를 발견한다. 벽에 새겨진 기호들 — 약탈자의 것이 아니다. 누군가 의도적으로 남긴 흔적이다.',
     choices: [
-      { text: '신호를 따라간다', karmaChange: 0, resourceCost: { hp: -1 }, revealNpc: 'luka', grantClue: 'raider_symbol' },
+      {
+        text: '신호를 따라간다',
+        karmaChange: 0,
+        successChance: 0.8,
+        revealNpc: 'luka',
+        onSuccess: {
+          karmaChange: 0,
+          grantClue: 'raider_symbol',
+          responseText: '벽을 따라 조심스럽게 이동했다. 신호의 주인 — 한 남자의 흔적을 따라가고 있다.',
+        },
+        onFailure: {
+          karmaChange: 0,
+          resourceCost: { hp: -2 },
+          responseText: '어둠 속에서 무언가에 걸려 굴렀다. 상처를 입었지만, 멀리서 누군가 지켜보고 있었다는 느낌만 남았다.',
+        },
+      },
       { text: '위험할 수 있으니 무시한다', karmaChange: 0 },
       { text: '정 노인에게 보고한다', karmaChange: -1, affinityChange: { elder: 1 } },
     ],
@@ -193,9 +319,25 @@ export const scenes: Scene[] = [
     turn: 11,
     narration: '한밤중 약탈자들의 소규모 습격이 있었다. 바리케이드를 일부 뚫었지만 격퇴했다. 아침이 밝자 피해를 확인한다. 부상자가 여럿이다.',
     choices: [
-      { text: '부상자를 먼저 치료한다', karmaChange: -1, resourceCost: { food: -1 }, affinityChange: { issel: 1 } },
+      { text: '부상자를 먼저 치료한다', karmaChange: -1, resourceCost: { food: -1, hp: 1 }, affinityChange: { issel: 1 }, responseText: '부상자를 돌보는 동안 당신의 상처도 함께 소독했다. 몸이 조금 가벼워진다.' },
       { text: '바리케이드 복구를 우선한다', karmaChange: 0, resourceCost: { hp: -1 } },
-      { text: '보복 공격을 준비한다', karmaChange: 2, resourceCost: { hp: -2 }, affinityChange: { issel: -1 } },
+      {
+        text: '보복 공격을 준비한다',
+        karmaChange: 2,
+        successChance: 0.5,
+        onSuccess: {
+          karmaChange: 2,
+          resourceCost: { hp: -1, food: 2 },
+          affinityChange: { issel: -1 },
+          responseText: '야간 기습은 성공했다. 약탈자 몇을 제압하고 소량의 식량을 얻었다. 그러나 당신의 손에 묻은 피는 쉽게 지워지지 않는다.',
+        },
+        onFailure: {
+          karmaChange: 2,
+          resourceCost: { hp: -3 },
+          affinityChange: { issel: -2 },
+          responseText: '적의 경계는 예상보다 삼엄했다. 역공을 당해 쫓기듯 돌아왔다. 많이 다쳤고, 사람들의 신뢰는 더 깊이 식었다.',
+        },
+      },
     ],
   },
   {
@@ -232,7 +374,7 @@ export const scenes: Scene[] = [
     narration: '약탈자들이 정착지를 포위했다. 정 노인이 앞으로 나선다. "내가 인질로 가겠다. 그 대신 사람들을 해치지 마라." 칸의 부하가 비웃는다. "노인 하나로는 부족해."',
     choices: [
       { text: '정 노인의 결정을 존중한다 (노인 위험)', karmaChange: -1, affinityChange: { elder: 1 }, npcEffect: { id: 'elder', alive: false }, branchResult: 'b_let_go' },
-      { text: '전투를 선택한다 — 정 노인을 지킨다', karmaChange: 1, resourceCost: { hp: -3, food: -1 }, npcEffect: { id: 'elder', alive: true }, branchResult: 'b_fight' },
+      { text: '전투를 선택한다 — 정 노인을 지킨다', karmaChange: 1, resourceCost: { hp: -2, food: -1 }, npcEffect: { id: 'elder', alive: true }, branchResult: 'b_fight' },
       { text: '정착지를 포기하고 모두 탈출한다', karmaChange: 0, resourceCost: { food: -2 }, affinityChange: { issel: -2 }, branchResult: 'b_flee' },
       {
         text: '루카의 비밀 통로로 협상한다',
@@ -282,15 +424,41 @@ export const scenes: Scene[] = [
     ],
   },
   {
+    id: 'act3_turn18_high',
+    act: 3,
+    turn: 18,
+    narration: '마지막 밤. 이설이 당신을 물끄러미 바라본다. "당신은... 이미 돌아올 수 없는 곳까지 왔어요. 내일 무엇을 선택하든, 그 선택은 당신 안에서 이미 정해져 있을 거예요." 그녀의 목소리가 떨린다.',
+    speaker: '이설',
+    condition: (state) => state.karma >= 9,
+    choices: [
+      { text: '"그래. 끝을 볼 뿐이다."', karmaChange: 1, affinityChange: { issel: -1 } },
+      { text: '"...그럴지도 모르지. 하지만 아직 모른다."', karmaChange: 0 },
+      { text: '"내가 선택한 길이다. 후회는 없어."', karmaChange: 0, affinityChange: { issel: -1 } },
+    ],
+  },
+  {
+    id: 'act3_turn18_low',
+    act: 3,
+    turn: 18,
+    narration: '마지막 밤. 이설이 당신의 손을 가만히 잡는다. "당신이 지금까지 지킨 것들... 저는 다 봤어요. 내일 어떤 선택을 하더라도, 저는 당신 편이에요."',
+    speaker: '이설',
+    condition: (state) => state.karma <= 4,
+    choices: [
+      { text: '"고마워. 너 덕분에 여기까지 올 수 있었어."', karmaChange: -1, affinityChange: { issel: 2 } },
+      { text: '"...네가 옆에 있어서 다행이야."', karmaChange: -1, affinityChange: { issel: 1 } },
+      { text: '손을 맞잡는다. 말은 필요 없었다.', karmaChange: -1, affinityChange: { issel: 2 } },
+    ],
+  },
+  {
     id: 'act3_turn18',
     act: 3,
     turn: 18,
-    narration: '마지막 밤이다. 내일이면 모든 것이 결정된다. 이설이 다가온다. "어떤 결과가 되든, 당신이 여기서 보여준 것들... 의미가 있었어요."',
+    narration: '마지막 밤이다. 내일이면 모든 것이 결정된다. 이설이 조용히 말한다. "내일 당신이 어떤 선택을 할지, 저는 가늠이 안 돼요. 하지만... 무엇을 하든 끝까지 보고 싶어요."',
     speaker: '이설',
     choices: [
       { text: '"고마워. 내일은 반드시 끝내겠어."', karmaChange: 0 },
       { text: '"후회하는 건 없어. 다만..."', karmaChange: -1 },
-      { text: '"살아남는 게 전부야." (냉담하게)', karmaChange: 1 },
+      { text: '"살아남는 게 전부야." (냉담하게)', karmaChange: 1, affinityChange: { issel: -1 } },
     ],
   },
 
