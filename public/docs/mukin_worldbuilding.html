@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>묵인 — 세계관 기획서 v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f2ed;
+  --bg2: #eeeae3;
+  --bg3: #e5e0d8;
+  --ink: #1a1714;
+  --ink2: #3d3830;
+  --ink3: #6b6358;
+  --ink4: #9c9389;
+  --red: #8b2020;
+  --red-light: #f0e4e4;
+  --gold: #7a5c2e;
+  --gold-light: #f0e8d8;
+  --rule: #c8c0b4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+/* GRAIN */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ── LAYOUT ── */
+.wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ── COVER ── */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 0 60px;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+
+.cover-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ink4);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.cover-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--red);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.cover h1 {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 900;
+  font-size: 88px;
+  line-height: 0.95;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+
+.cover-sub {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 300;
+  font-size: 18px;
+  color: var(--ink3);
+  margin-bottom: 48px;
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+.cover-quote {
+  border-left: 3px solid var(--red);
+  padding-left: 24px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  color: var(--ink2);
+  font-style: italic;
+  line-height: 1.9;
+  max-width: 520px;
+}
+
+.cover-bottom {
+  position: absolute;
+  bottom: 40px;
+  right: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.1em;
+  text-align: right;
+}
+
+/* ── SECTION ── */
+.section {
+  padding: 80px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.section-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ink4);
+  letter-spacing: 0.2em;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--ink);
+  margin-bottom: 40px;
+  line-height: 1.3;
+}
+
+.section-title span { color: var(--red); }
+
+p {
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.95;
+  margin-bottom: 20px;
+}
+
+p strong { color: var(--ink); font-weight: 700; }
+
+/* ── HIGHLIGHT BOX ── */
+.highlight {
+  background: var(--bg2);
+  border-left: 3px solid var(--ink);
+  padding: 24px 28px;
+  margin: 32px 0;
+}
+
+.highlight p { margin: 0; font-size: 14px; }
+
+.highlight.red { border-left-color: var(--red); background: var(--red-light); }
+.highlight.gold { border-left-color: var(--gold); background: var(--gold-light); }
+
+/* ── FLOW DIAGRAM ── */
+.flow {
+  margin: 40px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.flow-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.flow-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.flow-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.flow-dot.red { background: var(--red); }
+
+.flow-connector {
+  width: 1px;
+  flex: 1;
+  background: var(--rule);
+  min-height: 24px;
+}
+
+.flow-text {
+  padding-bottom: 24px;
+  flex: 1;
+}
+
+.flow-text strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.flow-text span {
+  font-size: 12px;
+  color: var(--ink3);
+  line-height: 1.7;
+}
+
+/* ── TABLE ── */
+.tbl-wrap {
+  margin: 32px 0;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead tr {
+  border-bottom: 2px solid var(--ink);
+}
+
+thead th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 400;
+  padding: 10px 16px 10px 0;
+  text-align: left;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--rule);
+}
+
+tbody tr:last-child { border-bottom: none; }
+
+tbody td {
+  padding: 16px 16px 16px 0;
+  color: var(--ink2);
+  vertical-align: top;
+  line-height: 1.7;
+}
+
+tbody td:first-child {
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  padding-right: 24px;
+}
+
+/* ── EPISODE CARDS ── */
+.episodes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 32px 0;
+}
+
+.ep {
+  background: var(--bg2);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+.ep:hover { background: var(--bg3); }
+
+.ep::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--rule);
+}
+
+.ep.active::before { background: var(--red); }
+
+.ep-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.15em;
+  margin-bottom: 8px;
+}
+
+.ep-title {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.ep-desc {
+  font-size: 13px;
+  color: var(--ink3);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.ep-dilemma {
+  background: var(--bg);
+  padding: 14px 18px;
+  border-left: 2px solid var(--red);
+}
+
+.ep-dilemma-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 6px;
+}
+
+.ep-dilemma p {
+  font-size: 12px;
+  color: var(--ink2);
+  margin: 0;
+  line-height: 1.7;
+}
+
+/* ── ENDING CARDS ── */
+.endings {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 32px 0;
+}
+
+.ending {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  overflow: hidden;
+}
+
+.ending-left {
+  background: var(--ink);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ending-icon {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.ending-name {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #f5f2ed;
+  line-height: 1.4;
+}
+
+.ending-left.e1 { background: #1a1714; }
+.ending-left.e2 { background: var(--red); }
+.ending-left.e3 { background: #3d3830; }
+.ending-left.e4 { background: #2a3d2a; }
+
+.ending-right {
+  background: var(--bg2);
+  padding: 24px 28px;
+}
+
+.ending-cond {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ink4);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.ending-desc {
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.8;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── KARMA SYSTEM ── */
+.karma-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 32px 0;
+}
+
+.karma-cell {
+  background: var(--bg2);
+  padding: 24px;
+}
+
+.karma-cell-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink4);
+  margin-bottom: 10px;
+}
+
+.karma-cell h4 {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.karma-cell p {
+  font-size: 12px;
+  color: var(--ink3);
+  margin: 0;
+  line-height: 1.7;
+}
+
+/* ── CHARACTER ── */
+.character {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 24px;
+  align-items: start;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.character:last-child { border-bottom: none; }
+
+.char-initial {
+  width: 64px;
+  height: 64px;
+  background: var(--ink);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 900;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.char-initial.red { background: var(--red); }
+.char-initial.muted { background: var(--ink3); }
+
+.char-name {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.char-role {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+}
+
+.char-desc {
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* ── REF ── */
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  margin: 32px 0;
+}
+
+.ref-item {
+  background: var(--bg2);
+  padding: 20px 24px;
+}
+
+.ref-title {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.ref-point {
+  font-size: 12px;
+  color: var(--ink3);
+  line-height: 1.7;
+}
+
+/* ── FOOTER ── */
+.footer {
+  padding: 60px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.footer-title {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 900;
+  font-size: 32px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.footer-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.12em;
+}
+
+/* ── DIVIDER ── */
+.rule { height: 1px; background: var(--rule); margin: 8px 0; }
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- COVER -->
+  <section class="cover reveal">
+    <div class="cover-meta">세계관 기획서 · v1.0 · Game Design Document</div>
+    <div class="cover-eyebrow">침묵은 선택이다</div>
+    <h1>묵인</h1>
+    <p class="cover-sub">
+      당신은 그날 밤 무언가를 보았다.<br>
+      그리고 아무 말도 하지 않았다.<br>
+      그게 이 모든 것의 시작이다.
+    </p>
+    <div class="cover-quote">
+      "내가 침묵했기 때문에 세상이 달라졌다.<br>
+      나는 그 무게를 평생 안고 산다."
+    </div>
+    <div class="cover-bottom">
+      텍스트 어드벤처 · 도덕적 선택 · 업보 시스템
+    </div>
+  </section>
+
+  <!-- 01. 게임 개요 -->
+  <section class="section reveal">
+    <div class="section-num">01</div>
+    <h2 class="section-title">게임 <span>개요</span></h2>
+
+    <p>
+      <strong>묵인</strong>은 실종자 탐문과 목격자 증언을 중심으로 한 텍스트 어드벤처 게임이다. 플레이어는 매 사건마다 하나의 진실과 마주하고, 그것을 어떻게 다룰지 선택한다. 어떤 선택도 완전히 옳지 않다. 어떤 침묵도 완전히 무해하지 않다.
+    </p>
+
+    <p>
+      "너의 목소리가 들려"(한국 드라마)의 감정 구조를 핵심 레퍼런스로 삼는다. 어린 시절 범죄를 목격했음에도 침묵한 주인공이, 그 죄책감을 안고 어른이 되어 비슷한 상황에 처한 사람들을 마주하는 구조다. 초자연적 요소 없이, 순전히 <strong>사람이 사람에게 저지르는 것</strong>이 이 게임의 공포다.
+    </p>
+
+    <div class="highlight red">
+      <p><strong>핵심 질문</strong> — 진실을 아는 사람이 그것을 말하지 않을 때, 그 침묵은 누구의 것인가.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>내용</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>장르</td><td>텍스트 어드벤처 / 도덕적 선택 / 미스터리</td></tr>
+          <tr><td>배경</td><td>가상의 한국 도시 — 낡은 주택가와 신도시가 공존하는 곳</td></tr>
+          <tr><td>시점</td><td>특정 시대 명시 없음. 현재에 가까운 가상 시공간</td></tr>
+          <tr><td>톤</td><td>사실적 · 다크하되 블랙코미디 없음 · 인간 군상극</td></tr>
+          <tr><td>플레이 구조</td><td>에피소드제 (단편 사건 연작) + 누적 업보 시스템</td></tr>
+          <tr><td>레퍼런스</td><td>검은방, 너의 목소리가 들려, 세 번째 살인, 비밀은 없다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 02. 세계관 설정 -->
+  <section class="section reveal">
+    <div class="section-num">02</div>
+    <h2 class="section-title">세계관 <span>설정</span></h2>
+
+    <p>
+      무대는 <strong>가상의 한국 도시</strong>. 재개발을 앞둔 낡은 빌라촌과 번듯한 신도시가 붙어 있는 곳. 경찰은 바쁘거나 무능하거나 부패해 있고, 진실은 돈과 인맥 사이 어딘가에 묻혀 있다.
+    </p>
+
+    <p>
+      이 도시의 사람들은 서로의 과거를 알고 있다. 아파트 복도에서, 시장 골목에서, 반상회에서. 알면서도 모른 척하는 것이 이 도시의 암묵적인 규칙이다. 그 규칙이 오래된 죄를 살려두고, 새로운 피해자를 만든다.
+    </p>
+
+    <div class="highlight">
+      <p>
+        이 세계에서 <strong>업보는 귀신이 아니라 사람을 통해 돌아온다.</strong> 10년 전 내가 침묵했던 사건이 오늘 내 가족에게 돌아오고, 내가 살리려 했던 선택이 다른 누군가를 죽인다. 마을 전체가 공범인 비밀이 새로운 사건의 씨앗이 된다.
+      </p>
+    </div>
+
+    <p>
+      초자연적 요소는 없다. 귀신도, 마법도, 저주도 없다. 있는 것은 오직 사람과 사람이 만들어내는 인과다.
+    </p>
+  </section>
+
+  <!-- 03. 주인공 -->
+  <section class="section reveal">
+    <div class="section-num">03</div>
+    <h2 class="section-title">주인공 — <span>침묵한 사람</span></h2>
+
+    <p>
+      주인공은 작은 <strong>탐문 사무소</strong>를 운영하는 민간인이다. 경찰도 못 찾는 사람을 찾아주는 일. 실종자, 잠적한 채무자, 연락이 끊긴 가족. 의뢰가 들어오면 발로 뛰고 사람을 만나고 진실을 캔다.
+    </p>
+
+    <div class="highlight red">
+      <p>
+        <strong>10년 전</strong>, 주인공은 중학생이었다. 어느 날 밤 골목에서 범죄를 목격했다. 누군가 맞고 있었다. 주인공은 도망쳤다. 신고도 하지 않았다. 무서워서.<br><br>
+        그 피해자는 다음 날 죽었다. 가해자는 잡히지 않았다. 주인공만 알고 있었으니까.
+      </p>
+    </div>
+
+    <p>
+      현재의 주인공이 이 일을 하는 이유를 스스로는 잘 설명하지 못한다. 그냥 잘 맞는 일이라고 말한다. 하지만 플레이어는 게임을 진행하며 알게 된다. 이것은 속죄의 방식이다. 혹은 속죄하지 못한다는 사실을 매일 확인하는 방식이다.
+    </p>
+
+    <p>
+      주인공의 과거는 게임 내내 <strong>조각조각 드러난다.</strong> 플레이어의 선택에 따라 주인공이 그 기억을 어떻게 바라보는지가 달라진다. 후회인지, 분노인지, 체념인지.
+    </p>
+  </section>
+
+  <!-- 04. 주요 인물 -->
+  <section class="section reveal">
+    <div class="section-num">04</div>
+    <h2 class="section-title">주요 <span>인물</span></h2>
+
+    <div class="character">
+      <div class="char-initial">탐</div>
+      <div>
+        <div class="char-name">주인공 (탐문사)</div>
+        <div class="char-role">Protagonist · 탐문 사무소 운영</div>
+        <p class="char-desc">10년 전 침묵한 목격자. 지금은 남의 비밀을 찾는 일을 한다. 스스로도 이유를 완전히 이해하지 못한다. 매 사건에서 과거의 자신을 만난다.</p>
+      </div>
+    </div>
+
+    <div class="character">
+      <div class="char-initial red">조</div>
+      <div>
+        <div class="char-name">조 형사</div>
+        <div class="char-role">Recurring · 지역 경찰서 형사</div>
+        <p class="char-desc">주인공과 사건으로 엮이는 인물. 법 안에서만 움직이고 싶지만 시스템의 한계를 잘 안다. 주인공의 방식을 못마땅해하면서도 묵인한다. 그것도 일종의 침묵이다.</p>
+      </div>
+    </div>
+
+    <div class="character">
+      <div class="char-initial muted">김</div>
+      <div>
+        <div class="char-name">김 노인</div>
+        <div class="char-role">Recurring · 사무소 건물 경비</div>
+        <p class="char-desc">주인공의 과거 중 일부를 알고 있다. 직접 묻지 않는다. 10년 전 그날 밤에 대해 뭔가를 알고 있는 것 같지만 확인할 수 없다. 조용히 커피를 건네는 사람.</p>
+      </div>
+    </div>
+
+    <div class="character">
+      <div class="char-initial red">가</div>
+      <div>
+        <div class="char-name">10년 전의 가해자</div>
+        <div class="char-role">Final · 마지막 에피소드 등장</div>
+        <p class="char-desc">잡히지 않았다. 지금은 멀쩡히 살고 있다. 어쩌면 꽤 괜찮은 사람이 되어 있을 수도 있다. 그게 더 문제다. 마지막 에피소드에서 주인공 앞에 나타난다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05. 게임 구조 -->
+  <section class="section reveal">
+    <div class="section-num">05</div>
+    <h2 class="section-title">게임 <span>구조</span></h2>
+
+    <p>
+      게임은 <strong>에피소드 연작</strong> 형태로 진행된다. 각 에피소드는 독립된 사건처럼 보이지만, 전부 하나의 주제를 공유한다. <strong>침묵이 만든 결과.</strong>
+    </p>
+
+    <p>매 에피소드는 동일한 흐름을 따른다.</p>
+
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+        <div class="flow-text">
+          <strong>의뢰 접수</strong>
+          <span>"사라진 사람을 찾아주세요." 단순해 보이는 의뢰.</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+        <div class="flow-text">
+          <strong>탐문 과정</strong>
+          <span>발로 뛰고 사람을 만난다. 이야기가 얽힐수록 의뢰가 단순하지 않았음을 안다.</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+        <div class="flow-text">
+          <strong>목격자 발견</strong>
+          <span>진실을 아는 사람이 있다. 그 사람은 말하지 않는다. 이유가 있다.</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-line"><div class="flow-dot red"></div><div class="flow-connector"></div></div>
+        <div class="flow-text">
+          <strong>선택의 순간</strong>
+          <span>파헤칠 것인가, 덮을 것인가. 진실을 말하게 할 것인가, 침묵을 존중할 것인가. 어떤 선택도 깨끗하지 않다.</span>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector" style="background:transparent;"></div></div>
+        <div class="flow-text">
+          <strong>업보의 축적</strong>
+          <span>선택이 수치로 쌓이는 것이 아니라, 다음 에피소드의 조건이 된다.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06. 에피소드 예시 -->
+  <section class="section reveal">
+    <div class="section-num">06</div>
+    <h2 class="section-title">에피소드 <span>예시</span></h2>
+
+    <p>각 에피소드는 독립적으로 읽히지만, 이전 선택의 그림자가 배경으로 깔린다.</p>
+
+    <div class="episodes">
+      <div class="ep active">
+        <div class="ep-num">EPISODE 01</div>
+        <div class="ep-title">사라진 남편</div>
+        <div class="ep-desc">
+          아내가 남편 실종 신고를 한다. 찾아보니 남편은 스스로 사라진 거다. 가정폭력을 피해서. 그는 숨어서 새 출발을 준비하고 있다.
+        </div>
+        <div class="ep-dilemma">
+          <div class="ep-dilemma-label">딜레마</div>
+          <p>아내에게 남편의 위치를 알리면 남편이 위험해진다. 말하지 않으면 아내는 계속 찾는다. 의뢰인에게 진실을 숨기는 것은 배신인가, 보호인가.</p>
+        </div>
+      </div>
+
+      <div class="ep active">
+        <div class="ep-num">EPISODE 02</div>
+        <div class="ep-title">열다섯 살</div>
+        <div class="ep-desc">
+          가출 청소년을 찾아달라는 의뢰. 아이를 찾았다. 그런데 집에 돌아가면 안 되는 상황이다. 의뢰인인 부모가 아이가 사라진 이유 그 자체다.
+        </div>
+        <div class="ep-dilemma">
+          <div class="ep-dilemma-label">딜레마</div>
+          <p>신고하면 아이는 시설로 간다. 덮으면 아이는 거리에 남는다. 부모에게 돌려보내면 처음과 같아진다. 어떤 선택도 아이를 안전하게 만들지 못한다.</p>
+        </div>
+      </div>
+
+      <div class="ep active">
+        <div class="ep-num">EPISODE 03</div>
+        <div class="ep-title">유일한 목격자</div>
+        <div class="ep-desc">
+          억울하게 기소된 사람의 무죄를 증명할 수 있는 목격자를 찾았다. 그런데 그 목격자는 증언하면 자기 범죄가 드러나는 사람이다.
+        </div>
+        <div class="ep-dilemma">
+          <div class="ep-dilemma-label">딜레마</div>
+          <p>증언을 강요하면 목격자가 감옥에 간다. 포기하면 무고한 사람이 유죄가 된다. 두 사람 중 하나를 선택하는 것이 과연 정의인가.</p>
+        </div>
+      </div>
+
+      <div class="ep">
+        <div class="ep-num">FINAL EPISODE</div>
+        <div class="ep-title">10년 전의 그 사람</div>
+        <div class="ep-desc">
+          주인공이 그날 밤 침묵했던 이유가 완전히 드러난다. 그리고 가해자가 나타난다. 지금은 멀쩡한 사람이 되어 있다. 어쩌면 좋은 사람이 됐을 수도 있다.
+        </div>
+        <div class="ep-dilemma">
+          <div class="ep-dilemma-label">최종 선택</div>
+          <p>신고할 것인가. 용서할 것인가. 아무것도 하지 않을 것인가. 이전까지의 모든 선택이 이 순간을 만들었다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07. 업보 시스템 -->
+  <section class="section reveal">
+    <div class="section-num">07</div>
+    <h2 class="section-title">업보 <span>시스템</span></h2>
+
+    <p>
+      업보는 수치로 쌓이지 않는다. 대신 <strong>이전 에피소드의 선택이 다음 에피소드의 조건을 바꾼다.</strong> 세계가 달라지는 것이 아니라, 주인공이 마주치는 사람들의 상황이 달라진다.
+    </p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>선택</th>
+            <th>다음 에피소드에 미치는 영향</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>목격자를 설득해 증언하게 했다</td>
+            <td>그 증언으로 인해 목격자 가족이 위험에 처한 사건이 들어온다</td>
+          </tr>
+          <tr>
+            <td>목격자의 침묵을 묵인했다</td>
+            <td>무고한 사람이 유죄 판결을 받았다는 후일담이 배경으로 깔린다</td>
+          </tr>
+          <tr>
+            <td>의뢰인에게 진실을 숨겼다</td>
+            <td>의뢰인이 나중에 더 큰 피해자가 되어 다시 찾아온다</td>
+          </tr>
+          <tr>
+            <td>진실을 완전히 밝혔다</td>
+            <td>그 진실이 또 다른 피해자를 만들었다는 사실을 알게 된다</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="karma-grid">
+      <div class="karma-cell">
+        <div class="karma-cell-label">원칙</div>
+        <h4>어떤 선택도 깨끗하지 않다</h4>
+        <p>진실을 밝히는 것이 항상 옳지 않고, 침묵이 항상 나쁘지 않다. 플레이어는 매번 "덜 나쁜 것"을 골라야 한다.</p>
+      </div>
+      <div class="karma-cell">
+        <div class="karma-cell-label">원칙</div>
+        <h4>되돌릴 수 없다</h4>
+        <p>선택지를 다시 고를 수 없다. 한 번 지나간 선택은 다음 사건의 배경이 되어 고정된다. 세이브 로드로 피할 수 없다.</p>
+      </div>
+      <div class="karma-cell">
+        <div class="karma-cell-label">원칙</div>
+        <h4>침묵도 선택이다</h4>
+        <p>아무것도 하지 않는 것, 모른 척하는 것도 하나의 행동으로 처리된다. 무게는 같다.</p>
+      </div>
+      <div class="karma-cell">
+        <div class="karma-cell-label">원칙</div>
+        <h4>인과는 느리게 온다</h4>
+        <p>선택의 결과가 바로 보이지 않는다. 두세 에피소드 뒤에 전혀 다른 형태로 돌아온다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08. 결말 -->
+  <section class="section reveal">
+    <div class="section-num">08</div>
+    <h2 class="section-title">4가지 <span>결말</span></h2>
+
+    <p>최종 에피소드에서 가해자와 마주쳤을 때, 이전까지의 모든 선택이 주인공의 상태를 결정한다. 그 상태가 결말로 이어진다.</p>
+
+    <div class="endings">
+      <div class="ending">
+        <div class="ending-left e1">
+          <div class="ending-icon">⚫</div>
+          <div class="ending-name">속죄</div>
+        </div>
+        <div class="ending-right">
+          <div class="ending-cond">진실을 밝히는 선택 다수 · 업보 낮음</div>
+          <p class="ending-desc">가해자를 신고한다. 10년이 늦었다. 세상이 크게 달라지지 않는다. 그래도 처음으로 잠이 온다.</p>
+        </div>
+      </div>
+
+      <div class="ending">
+        <div class="ending-left e2">
+          <div class="ending-icon">🔴</div>
+          <div class="ending-name">공범</div>
+        </div>
+        <div class="ending-right">
+          <div class="ending-cond">침묵 선택 다수 · 업보 높음</div>
+          <p class="ending-desc">가해자를 알면서도 보내준다. 이유가 있었다. 하지만 이제 주인공도 진짜 공범이 됐다. 10년 전과 같아졌다.</p>
+        </div>
+      </div>
+
+      <div class="ending">
+        <div class="ending-left e3">
+          <div class="ending-icon">🟡</div>
+          <div class="ending-name">붕괴</div>
+        </div>
+        <div class="ending-right">
+          <div class="ending-cond">선택이 극단적으로 엇갈림</div>
+          <p class="ending-desc">진실도 침묵도 선택하지 못한다. 주인공은 무너진다. 가장 현실적인 결말. 사람이 모든 걸 감당할 수는 없다.</p>
+        </div>
+      </div>
+
+      <div class="ending">
+        <div class="ending-left e4">
+          <div class="ending-icon">🟢</div>
+          <div class="ending-name">묵인</div>
+        </div>
+        <div class="ending-right">
+          <div class="ending-cond">처음부터 끝까지 침묵 선택</div>
+          <p class="ending-desc">아무것도 바뀌지 않는다. 가해자도 살고 주인공도 산다. 세상은 계속 돌아간다. 그게 전부다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09. 레퍼런스 -->
+  <section class="section reveal">
+    <div class="section-num">09</div>
+    <h2 class="section-title">톤 <span>레퍼런스</span></h2>
+
+    <div class="ref-grid">
+      <div class="ref-item">
+        <div class="ref-title">검은방</div>
+        <div class="ref-point">텍스트 선택지 구조 / 선악 모호 / 되돌릴 수 없는 선택의 무게감</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">너의 목소리가 들려</div>
+        <div class="ref-point">침묵한 목격자의 죄책감 / 그 침묵이 만드는 인과 / 감정의 중심축</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">세 번째 살인 (고레에다)</div>
+        <div class="ref-point">진실보다 중요한 것이 있는가 / 사법 시스템의 한계와 인간의 선택</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">비밀은 없다</div>
+        <div class="ref-point">찾으면 안 됐던 것을 찾는 공포 / 진실이 구원인가 파괴인가</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">나의 아저씨</div>
+        <div class="ref-point">상처 입은 사람들이 서로를 알아보는 방식 / 인물 간 감정의 결</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">밀양 (이창동)</div>
+        <div class="ref-point">용서와 업보 / 신앙과 현실 / 인간이 감당할 수 없는 것들</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer reveal">
+    <div>
+      <div class="footer-title">묵인</div>
+      <div class="footer-sub">세계관 기획서 v1.0 · Game Design Document</div>
+    </div>
+    <div class="footer-sub" style="text-align:right;">
+      Confidential · Internal Use Only
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

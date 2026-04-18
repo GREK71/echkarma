@@ -1,0 +1,132 @@
+.episode-select {
+  min-height: 100dvh;
+  background: var(--bg);
+  padding: 3rem 1.5rem 4rem;
+}
+
+.ep-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.back-link {
+  background: transparent;
+  border: none;
+  color: var(--ink4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  padding: 0.3rem 0;
+  margin-bottom: 2rem;
+  display: block;
+}
+.back-link:hover { color: var(--ink2); }
+
+.ep-header {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+}
+
+.ep-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--red);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.ep-title {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 2.2rem;
+  color: var(--ink);
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.ep-desc {
+  font-size: 14px;
+  color: var(--ink3);
+  margin: 0;
+  line-height: 1.8;
+  max-width: 480px;
+}
+
+.ep-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ep-card {
+  text-align: left;
+  background: var(--bg2);
+  border: none;
+  padding: 1.6rem 1.8rem;
+  position: relative;
+  font-family: inherit;
+  transition: background 0.2s ease;
+  width: 100%;
+}
+
+.ep-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--rule);
+  transition: background 0.2s ease;
+}
+
+.ep-card.open:hover {
+  background: var(--bg3);
+}
+.ep-card.open:hover::before {
+  background: var(--red);
+}
+
+.ep-card.done::before {
+  background: var(--ink3);
+}
+
+.ep-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ep-card-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.2em;
+  margin-bottom: 0.4rem;
+}
+
+.ep-card-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+
+.ep-card-logline {
+  font-size: 13px;
+  color: var(--ink3);
+  line-height: 1.7;
+  margin-bottom: 0.8rem;
+}
+
+.ep-card-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.status-done { color: var(--ink3); }
+.status-open { color: var(--red); }
+.status-locked { color: var(--ink4); }

@@ -1,15 +1,11 @@
 .prologue-screen {
   position: relative;
   min-height: 100dvh;
-  background: #08080c;
-  color: #b0a898;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 2rem 1.5rem;
-  max-width: 600px;
-  margin: 0 auto;
+  justify-content: center;
+  background: var(--bg);
+  padding: 2rem 1.5rem 4rem;
   overflow: hidden;
   cursor: pointer;
 }
@@ -18,108 +14,96 @@
   position: absolute;
   inset: 0;
   background: url('/title-bg.png') center top / cover no-repeat;
-  opacity: 0.15;
+  filter: sepia(0.9) brightness(0.25) blur(4px);
+  opacity: 0.25;
   z-index: 0;
-  filter: blur(2px);
 }
 
 .prologue-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(8,8,12,0.9) 90%);
+  background: linear-gradient(to bottom, rgba(245,242,237,0.8), rgba(245,242,237,0.98));
   z-index: 1;
 }
 
-.prologue-lines {
+.prologue-inner {
   position: relative;
   z-index: 2;
+  max-width: 560px;
+  width: 100%;
+}
+
+.prologue-back {
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  background: transparent;
+  border: none;
+  color: var(--ink4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  padding: 0.3rem 0.6rem;
+}
+.prologue-back:hover { color: var(--ink2); }
+
+.prologue-lines {
   display: flex;
   flex-direction: column;
-  gap: 1.6rem;
-  max-width: 500px;
-  width: 100%;
+  gap: 1.8rem;
+  padding: 2rem 0;
 }
 
 .prologue-line {
   margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
   font-size: 0.98rem;
   line-height: 2;
-  color: #b0a898;
-  text-align: left;
+  color: var(--ink2);
   word-break: keep-all;
-  opacity: 0;
-  transform: translateY(8px);
-  animation: prologueFadeIn 1.4s ease forwards;
-  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  animation: prologueFadeIn 1.6s ease forwards;
 }
 
-.prologue-line:first-letter {
-  color: #cf8e34;
-  font-weight: bold;
+.prologue-line.last {
+  font-weight: 700;
+  color: var(--ink);
+  border-left: 2px solid var(--red);
+  padding-left: 1rem;
 }
 
 @keyframes prologueFadeIn {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.prologue-actions {
-  position: relative;
-  z-index: 2;
-  margin-top: 3rem;
+.prologue-cta {
+  margin-top: 2rem;
   animation: prologueFadeIn 1.5s ease forwards;
+  text-align: center;
 }
 
-.prologue-btn-start {
-  padding: 0.9rem 2.5rem;
-  background: rgba(207, 142, 52, 0.1);
-  color: #cf8e34;
-  border: 1px solid #cf8e34;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  letter-spacing: 0.3rem;
-  transition: all 0.3s;
-  font-family: inherit;
-}
-
-.prologue-btn-start:hover {
-  background: #cf8e34;
-  color: #08080c;
-  box-shadow: 0 0 20px rgba(207, 142, 52, 0.3);
+.cta-divider {
+  width: 60px;
+  height: 1px;
+  background: var(--rule);
+  margin: 0 auto 2rem;
 }
 
 .prologue-hint {
   position: absolute;
-  bottom: 2rem;
+  bottom: -2rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.7rem;
-  color: #555;
-  letter-spacing: 0.2rem;
-  z-index: 2;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.2em;
   animation: hintPulse 2s ease infinite;
+  white-space: nowrap;
 }
 
 @keyframes hintPulse {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.8; }
-}
-
-.prologue-skip {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: transparent;
-  color: #666;
-  border: none;
-  font-size: 0.8rem;
-  cursor: pointer;
-  padding: 0.3rem 0.6rem;
-  z-index: 3;
-  font-family: inherit;
-}
-
-.prologue-skip:hover {
-  color: #b0a898;
 }

@@ -1,0 +1,79 @@
+.ep-end {
+  min-height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.ep-end.show {
+  opacity: 1;
+}
+
+.ep-end-wrap {
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+}
+
+.ep-end-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--red);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+
+.ep-end-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--ink);
+  margin: 0 0 2.5rem;
+  letter-spacing: -0.02em;
+}
+
+.ep-end-response {
+  background: var(--bg2);
+  border-left: 3px solid var(--red);
+  padding: 1.5rem 1.8rem;
+  text-align: left;
+  margin-bottom: 2.5rem;
+}
+
+.ep-end-response p {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.9;
+  word-break: keep-all;
+}
+
+.ep-end-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--rule);
+  margin: 0 auto 2rem;
+}
+
+.ep-end-btn {
+  padding: 0.9rem 2.5rem;
+  background: var(--ink);
+  color: var(--bg);
+  border: 1px solid var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  transition: all 0.2s ease;
+}
+
+.ep-end-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+}

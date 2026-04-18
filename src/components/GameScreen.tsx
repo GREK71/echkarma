@@ -1,258 +1,146 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { scenes } from '../data/scenes';
-import { RESOURCE_CONFIG } from '../game/resources';
-import { KarmaGauge } from './KarmaGauge';
-import { NPCStatus } from './NPCStatus';
-import { ResourceBar } from './ResourceBar';
+import { findScene, EPISODES } from '../data/episodes';
 import { SystemMessage } from './SystemMessage';
 import './GameScreen.css';
 
 export function GameScreen() {
-  const {
-    currentSceneId, karma, resources, npcs, discoveredClues,
-    makeChoice, makeRandomEventChoice,
-    responseText, dismissResponse, activeRandomEvent,
-  } = useGameStore();
-  const [displayedText, setDisplayedText] = useState('');
+  const currentSceneId = useGameStore((s) => s.currentSceneId);
+  const currentEpisode = useGameStore((s) => s.currentEpisode);
+  const flags = useGameStore((s) => s.flags);
+  const responseText = useGameStore((s) => s.responseText);
+  const makeChoice = useGameStore((s) => s.makeChoice);
+  const dismissResponse = useGameStore((s) => s.dismissResponse);
+
+  const [displayed, setDisplayed] = useState('');
   const [isTyping, setIsTyping] = useState(true);
   const [showChoices, setShowChoices] = useState(false);
   const [fadeState, setFadeState] = useState<'in' | 'visible' | 'out'>('in');
-  const [screenShake, setScreenShake] = useState(false);
 
-  const scene = scenes.find((s) => s.id === currentSceneId);
+  const scene = findScene(currentSceneId);
+  const epMeta = currentEpisode ? EPISODES[currentEpisode] : null;
 
-  const isShowingResponse = responseText !== null && activeRandomEvent === null;
-  const isShowingRandomEvent = activeRandomEvent !== null && responseText === null;
-  const isShowingScene = !isShowingResponse && !isShowingRandomEvent;
-
-  const displayNarration = isShowingResponse
-    ? responseText
-    : isShowingRandomEvent
-    ? activeRandomEvent!.narration
-    : scene?.narration ?? '';
-
-  const displaySpeaker = isShowingRandomEvent
-    ? activeRandomEvent!.speaker
-    : isShowingScene
-    ? scene?.speaker
-    : undefined;
-
-  const isFlashback = isShowingScene && scene?.isFlashback;
+  const isShowingResponse = responseText !== null;
+  const displayText = isShowingResponse ? responseText : scene?.narration ?? '';
+  const displaySpeaker = isShowingResponse ? null : scene?.speaker;
 
   useEffect(() => {
     setFadeState('in');
-    setDisplayedText('');
+    setDisplayed('');
     setIsTyping(true);
     setShowChoices(false);
 
-    const fadeTimer = setTimeout(() => setFadeState('visible'), 400);
-
-    if (isShowingScene && scene?.isBranch) {
-      setScreenShake(true);
-      setTimeout(() => setScreenShake(false), 600);
-    }
+    const fadeT = setTimeout(() => setFadeState('visible'), 300);
 
     let i = 0;
-    const text = displayNarration;
+    const text = displayText;
     let interval: ReturnType<typeof setInterval>;
-    const typingDelay = setTimeout(() => {
+    const startT = setTimeout(() => {
       interval = setInterval(() => {
         i++;
-        setDisplayedText(text.slice(0, i));
+        setDisplayed(text.slice(0, i));
         if (i >= text.length) {
           clearInterval(interval);
           setIsTyping(false);
           setTimeout(() => setShowChoices(true), 400);
         }
-      }, 25);
-    }, 500);
+      }, 22);
+    }, 400);
 
     return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(typingDelay);
+      clearTimeout(fadeT);
+      clearTimeout(startT);
       if (interval) clearInterval(interval);
     };
-  }, [currentSceneId, responseText, activeRandomEvent?.id]);
+  }, [currentSceneId, responseText]);
 
   const handleSkip = () => {
     if (isTyping) {
-      setDisplayedText(displayNarration);
+      setDisplayed(displayText);
       setIsTyping(false);
-      setTimeout(() => setShowChoices(true), 100);
+      setTimeout(() => setShowChoices(true), 80);
     }
   };
 
-  const handleResponseDismiss = () => {
-    setFadeState('out');
-    setShowChoices(false);
-    setTimeout(() => dismissResponse(), 350);
-  };
-
-  const handleChoice = (choiceIndex: number) => {
+  const handleChoice = (idx: number) => {
     if (!scene) return;
-    const choice = scene.choices[choiceIndex];
-
-    if (scene.id === 'branch_c') {
-      if (choice.branchResult === 'c_spare' && karma > 4) return;
-      if (choice.branchResult === 'c_dialogue' && karma > 8) return;
+    const choice = scene.choices[idx];
+    // Lock check
+    if (choice.requireFlag) {
+      const cur = flags[choice.requireFlag.key];
+      if (cur !== choice.requireFlag.equals) return;
     }
-    if (scene.id === 'branch_b' && choice.branchResult === 'b_luka_negotiate' && !npcs.luka.revealed) return;
-    if (choice.requireResource) {
-      const { resource, min } = choice.requireResource;
-      if (resources[resource] < min) return;
-    }
-    if (choice.requireAffinity) {
-      const { npc, min } = choice.requireAffinity;
-      if (npcs[npc].affinity < min) return;
-    }
-    if (choice.requireClue && !discoveredClues.includes(choice.requireClue)) return;
-
     setFadeState('out');
     setShowChoices(false);
-    setTimeout(() => makeChoice(choice), 350);
+    setTimeout(() => makeChoice(choice), 300);
   };
 
-  const handleRandomEventChoice = (choiceIndex: number) => {
-    if (!activeRandomEvent) return;
-    const choice = activeRandomEvent.choices[choiceIndex];
+  const handleDismissResponse = () => {
     setFadeState('out');
     setShowChoices(false);
-    setTimeout(() => makeRandomEventChoice(choice), 350);
+    setTimeout(() => dismissResponse(), 300);
   };
 
-  if (!scene) return <div className="game-screen">씬을 불러올 수 없습니다.</div>;
-
-  const actLabel = scene.act === 1 ? '제1막' : scene.act === 2 ? '제2막' : '제3막';
-  const isBranchScene = isShowingScene && scene.isBranch;
+  if (!scene) return <div className="game-screen">불러올 수 없습니다.</div>;
 
   return (
-    <div className={`game-screen ${screenShake ? 'screen-shake' : ''}`}>
-      <div className="game-header">
-        <div className="turn-info">
-          <span className="act-label">{actLabel}</span>
-          <span className="turn-label">턴 {scene.turn}/20</span>
-        </div>
-        <ResourceBar />
-        <KarmaGauge />
-        <NPCStatus />
-      </div>
-
-      <div className={`story-area scene-fade scene-fade-${fadeState} ${isFlashback ? 'flashback' : ''}`} onClick={handleSkip}>
-        {isBranchScene && (
-          <div className="branch-indicator">
-            <span className="branch-pulse" />
-            분기점
+    <div className="game-screen">
+      <div className="game-wrap">
+        <header className="game-header">
+          <div className="game-meta">
+            {epMeta && <span className="game-ep">{epMeta.number}</span>}
+            {epMeta && <span className="game-sep">·</span>}
+            {epMeta && <span className="game-title">{epMeta.title}</span>}
           </div>
-        )}
-        {isShowingRandomEvent && (
-          <div className="random-event-indicator">돌발 상황</div>
-        )}
-        {isFlashback && (
-          <div className="flashback-indicator">기억의 파편</div>
-        )}
-        {displaySpeaker && (
-          <div className="speaker-name">{displaySpeaker}</div>
-        )}
-        <p className={`narration-text ${isFlashback ? 'flashback-text' : ''}`}>
-          {displayedText}
-          {isTyping && <span className="cursor">|</span>}
-        </p>
-      </div>
+        </header>
 
-      <div className={`choices-area ${showChoices ? 'visible' : ''}`}>
-        {isShowingResponse && (
-          <button className="choice-btn" onClick={handleResponseDismiss}>
-            <span className="choice-text">계속...</span>
-          </button>
-        )}
+        <main className={`game-body scene-fade scene-fade-${fadeState}`} onClick={handleSkip}>
+          {scene.isFlashback && !isShowingResponse && (
+            <div className="tag-flashback">회상</div>
+          )}
+          {scene.isBranch && !isShowingResponse && (
+            <div className="tag-branch">분기점</div>
+          )}
+          {displaySpeaker && (
+            <div className="speaker">{displaySpeaker}</div>
+          )}
+          <p className={`narration ${scene.isFlashback && !isShowingResponse ? 'flashback-text' : ''}`}>
+            {displayed}
+            {isTyping && <span className="cursor">|</span>}
+          </p>
+        </main>
 
-        {isShowingRandomEvent && activeRandomEvent!.choices.map((choice, idx) => {
-          const costHints: string[] = [];
-          if (choice.resourceCost) {
-            for (const [key, val] of Object.entries(choice.resourceCost)) {
-              if (val === 0) continue;
-              const cfg = RESOURCE_CONFIG[key as keyof typeof RESOURCE_CONFIG];
-              if (cfg) costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
-            }
-          }
-          return (
-            <button key={idx} className="choice-btn random-event-choice" onClick={() => handleRandomEventChoice(idx)} style={{ animationDelay: `${idx * 0.1}s` }}>
-              <span className="choice-text">{choice.text}</span>
-              <span className="choice-hints">
-                {costHints.length > 0 && <span className="cost-hints">{costHints.join(' ')}</span>}
-                {choice.karmaChange !== 0 && (
-                  <span className={`karma-hint ${choice.karmaChange > 0 ? 'bad' : 'good'}`}>
-                    {choice.karmaChange > 0 ? `+${choice.karmaChange}` : choice.karmaChange}
-                  </span>
-                )}
-              </span>
+        <footer className={`choices ${showChoices ? 'visible' : ''}`}>
+          {isShowingResponse ? (
+            <button className="choice-btn continue" onClick={handleDismissResponse}>
+              <span className="choice-text">계속...</span>
             </button>
-          );
-        })}
-
-        {isShowingScene && scene.choices.map((choice, idx) => {
-          let disabled = false;
-          let lockReason = '';
-
-          if (scene.id === 'branch_c') {
-            if (choice.branchResult === 'c_spare' && karma > 4) { disabled = true; lockReason = '업보 \u22644 필요'; }
-            if (choice.branchResult === 'c_dialogue' && karma > 8) { disabled = true; lockReason = '업보 \u22648 필요'; }
-          }
-          if (scene.id === 'branch_b' && choice.branchResult === 'b_luka_negotiate' && !npcs.luka.revealed) {
-            disabled = true; lockReason = '루카를 만나지 못했다';
-          }
-          if (choice.requireResource) {
-            const { resource, min } = choice.requireResource;
-            if (resources[resource] < min) { disabled = true; lockReason = `${RESOURCE_CONFIG[resource].label} ${min} 이상 필요`; }
-          }
-          if (choice.requireAffinity) {
-            const { npc, min } = choice.requireAffinity;
-            if (npcs[npc].affinity < min) { disabled = true; lockReason = `${npcs[npc].name} 호감도 ${min} 이상 필요`; }
-          }
-          if (choice.requireClue && !discoveredClues.includes(choice.requireClue)) {
-            disabled = true; lockReason = '필요한 단서가 없다';
-          }
-
-          const costHints: string[] = [];
-          if (choice.resourceCost) {
-            for (const [key, val] of Object.entries(choice.resourceCost)) {
-              if (val === 0) continue;
-              const cfg = RESOURCE_CONFIG[key as keyof typeof RESOURCE_CONFIG];
-              if (cfg) costHints.push(`${cfg.icon}${val > 0 ? `+${val}` : val}`);
-            }
-          }
-
-          // 확률 뱃지 (successChance 있을 때만)
-          const probability = choice.successChance;
-          let probabilityClass = '';
-          if (probability !== undefined) {
-            if (probability >= 0.7) probabilityClass = 'high';
-            else if (probability >= 0.45) probabilityClass = 'mid';
-            else probabilityClass = 'low';
-          }
-
-          return (
-            <button key={idx} className={`choice-btn ${disabled ? 'disabled' : ''} ${isBranchScene ? 'branch-choice' : ''}`}
-              onClick={() => handleChoice(idx)} disabled={disabled} style={{ animationDelay: `${idx * 0.1}s` }}>
-              <span className="choice-text">{choice.text}</span>
-              <span className="choice-hints">
-                {!disabled && probability !== undefined && (
-                  <span className={`probability-hint ${probabilityClass}`}>
-                    {Math.round(probability * 100)}%
-                  </span>
-                )}
-                {lockReason && <span className="lock-reason">{lockReason}</span>}
-                {!disabled && costHints.length > 0 && <span className="cost-hints">{costHints.join(' ')}</span>}
-                {!disabled && choice.karmaChange !== 0 && (
-                  <span className={`karma-hint ${choice.karmaChange > 0 ? 'bad' : 'good'}`}>
-                    {choice.karmaChange > 0 ? `+${choice.karmaChange}` : choice.karmaChange}
-                  </span>
-                )}
-              </span>
-            </button>
-          );
-        })}
+          ) : (
+            scene.choices.map((choice, idx) => {
+              let disabled = false;
+              let lockReason = '';
+              if (choice.requireFlag) {
+                const cur = flags[choice.requireFlag.key];
+                if (cur !== choice.requireFlag.equals) {
+                  disabled = true;
+                  lockReason = choice.lockReason ?? '조건 미충족';
+                }
+              }
+              return (
+                <button
+                  key={idx}
+                  className={`choice-btn ${disabled ? 'disabled' : ''}`}
+                  onClick={() => handleChoice(idx)}
+                  disabled={disabled}
+                  style={{ animationDelay: `${idx * 0.08}s` }}
+                >
+                  <span className="choice-text">{choice.text}</span>
+                  {disabled && lockReason && <span className="choice-lock">{lockReason}</span>}
+                </button>
+              );
+            })
+          )}
+        </footer>
       </div>
 
       <SystemMessage />

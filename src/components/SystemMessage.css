@@ -1,72 +1,53 @@
-.system-message {
+.sys-msg {
   position: fixed;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
   max-width: 90%;
-  padding: 0.5rem 1rem;
-  border-radius: 0 0 4px 4px;
-  font-size: 0.78rem;
-  letter-spacing: 0.05rem;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
   z-index: 100;
   display: flex;
-  align-items: center;
   gap: 0.5rem;
+  align-items: center;
   white-space: nowrap;
+  background: var(--ink);
+  color: var(--bg);
   transition: transform 0.4s ease, opacity 0.4s ease;
 }
 
-.system-message.show {
+.sys-msg.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
 
-.system-message.hide {
+.sys-msg.hide {
   opacity: 0;
   transform: translateX(-50%) translateY(-100%);
 }
 
 .sys-tag {
-  font-weight: bold;
-  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--red-light);
 }
 
 .sys-text {
-  color: #b0a898;
+  font-weight: 300;
+  color: var(--bg);
 }
 
-/* Types */
-.system-message.affinity {
-  background: rgba(207, 142, 52, 0.15);
-  border: 1px solid rgba(207, 142, 52, 0.3);
-  border-top: none;
+.sys-msg.memory {
+  background: var(--gold);
 }
-.system-message.affinity .sys-tag { color: #cf8e34; }
+.sys-msg.memory .sys-tag {
+  color: var(--gold-light);
+}
 
-.system-message.clue {
-  background: rgba(100, 160, 220, 0.12);
-  border: 1px solid rgba(100, 160, 220, 0.3);
-  border-top: none;
+.sys-msg.warning {
+  background: var(--red);
 }
-.system-message.clue .sys-tag { color: #64a0dc; }
-
-.system-message.resource {
-  background: rgba(109, 171, 99, 0.12);
-  border: 1px solid rgba(109, 171, 99, 0.3);
-  border-top: none;
+.sys-msg.warning .sys-tag {
+  color: var(--red-light);
 }
-.system-message.resource .sys-tag { color: #6dab63; }
-
-.system-message.warning {
-  background: rgba(196, 64, 48, 0.15);
-  border: 1px solid rgba(196, 64, 48, 0.3);
-  border-top: none;
-}
-.system-message.warning .sys-tag { color: #c44030; }
-
-.system-message.memory {
-  background: rgba(150, 120, 180, 0.12);
-  border: 1px solid rgba(150, 120, 180, 0.3);
-  border-top: none;
-}
-.system-message.memory .sys-tag { color: #9678b4; }
